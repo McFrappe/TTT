@@ -2,7 +2,7 @@ CC=gcc
 CFLAGS=-Wall -pedantic -g
 CFLAGS_LIB=-c
 LIB_PATH=lib
-OBJ_FILES=src/ui.c src/api.c src/json_response.c
+OBJ_FILES=src/ui.c src/api.c src/parser.c
 BUILD_DIR=build
 BUILD_PATH=$(BUILD_DIR)/ttt.out
 
