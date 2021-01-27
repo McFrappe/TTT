@@ -11,10 +11,10 @@ jobs:
       - uses: actions/checkout@v2
         with:
           ref: ${{ github.head_ref }}
-      - name: install astyle ubuntu
+      - name: Install astyle
         run: sudo apt-get install astyle
       - name: Format Code
-        run: astyle -r -A2 -s4 -s -p -xg -H -U -f -xL -xV -xe -k3 -W3 -xb -j -xf -c -n *.c *.h
+        run: astyle -r -A2 -s4 -s -p -xg -H -U -f -xL -xV -xe -k3 -W3 -xb -j -xf -c -n src/*.c src/*.h
       - name: Commit changes
         uses: stefanzweifel/git-auto-commit-action@v4.1.2
         with:
