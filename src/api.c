@@ -102,8 +102,6 @@ static page_t *make_request(uint16_t start, uint16_t end) {
     return NULL;
   }
 
-  curl_easy_cleanup(curl);
-
   return parsed_page;
 }
 
@@ -123,4 +121,8 @@ page_t *api_get_page(uint16_t page_id) {
 
 page_t *api_get_page_range(uint16_t start, uint16_t end) {
   return make_request(start, end);
+}
+
+void api_destroy() {
+  curl_easy_cleanup(curl);
 }

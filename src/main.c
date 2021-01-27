@@ -4,7 +4,9 @@
 
 int main(void) {
   api_intialize();
-  page_t *page = api_get_page(HOME);
+  api_get_page(HOME);
+  api_get_page(NEWS);
+  api_destroy();
 
   return 0;
 }
