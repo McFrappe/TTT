@@ -1,4 +1,5 @@
 #pragma once
+#include "parser.h"
 #include <stdint.h>
 #include <curl/curl.h>
 
@@ -17,7 +18,6 @@ enum pages {
 typedef enum pages pages_t;
 
 void api_intialize();
-void api_get_page(uint16_t page);
-void api_get_page_range(uint16_t range_start, uint16_t range_end);
-void api_page_exists(uint16_t page_id);
+page_t *api_get_page(uint16_t page);
+page_t *api_get_page_range(uint16_t range_start, uint16_t range_end);
 void api_destroy();

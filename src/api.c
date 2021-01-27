@@ -1,5 +1,6 @@
 #include "api.h"
 #include <stdlib.h>
+#include <string.h>
 #include <assert.h>
 #include <curl/curl.h>
 
@@ -7,14 +8,37 @@
 #define URL_BUF_SIZE 256
 #define RANGE_BUF_SIZE 16
 
+typedef struct response_chunk {
+  char *data;
+  size_t size;
+} response_chunk_t;
+
 static CURL *curl = NULL;
-static CURLcode res = -1;
+static CURLcode res_code = -1;
 static char url_buf[URL_BUF_SIZE];
+
+static size_t write_callback(void *data, size_t size, size_t nmemb, void *extra) {
+  size_t realsize = size * nmemb;
+  response_chunk_t *mem = extra;
+
+  char *ptr = realloc(mem->data, mem->size + realsize + 1);
+  if(ptr == NULL) {
+    printf("Out of memory!\n");
+    return 0;
+  }
+
+  mem->data = ptr;
+  memcpy(&(mem->data[mem->size]), data, realsize);
+  mem->size += realsize;
+  mem->data[mem->size] = 0;
+
+  return realsize;
+}
 
 static void create_page_range(char *buf, size_t buf_size, uint16_t start, uint16_t end) {
   assert(buf != NULL);
   assert(buf_size != 0);
-  
+
   if (end == 0) {
     snprintf(buf, buf_size, "%d", start);
   } else {
@@ -28,10 +52,10 @@ static void create_page_range(char *buf, size_t buf_size, uint16_t start, uint16
 /// @return the endpoint URL for the page between start and end or only start if end is 0
 static void create_endpoint_url(char *buf, size_t buf_size, uint16_t start, uint16_t end) {
   assert(start != 0);
-  
+
   char range[RANGE_BUF_SIZE];
   create_page_range(range, RANGE_BUF_SIZE, start, end);
-  
+
   snprintf(
     buf,
     buf_size,
@@ -41,34 +65,46 @@ static void create_endpoint_url(char *buf, size_t buf_size, uint16_t start, uint
   );
 }
 
-static void make_request(uint16_t start, uint16_t end) {
+
+// TODO: Return error(s) and display in UI
+static page_t *make_request(uint16_t start, uint16_t end) {
   assert(start != 0);
 
-  if (curl == NULL)
+  if (!curl)
     api_intialize();
 
-  if (!curl)
-    return;
-
   create_endpoint_url(url_buf, URL_BUF_SIZE, start, end);
-  
-  curl_easy_setopt(
-    curl,
-    CURLOPT_URL,
-    url_buf
-  );
-  
-  // TODO: Where we last ended up.
-  res = curl_easy_perform(curl);
-  
-  if (res != CURLE_OK) {
-    printf("Fetch failed: %s", curl_easy_strerror(res));
-    return;
+
+  // Create chunk to store data in
+  response_chunk_t chunk = {
+    // TODO: Allocate more memory at once to prevent unnecessary realloc's?
+    .data = malloc(1),
+    .size = 0
+  };
+
+  curl_easy_setopt(curl, CURLOPT_URL,           url_buf);
+  curl_easy_setopt(curl, CURLOPT_NOPROGRESS,    1L);
+  curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
+  curl_easy_setopt(curl, CURLOPT_WRITEDATA,     &chunk);
+
+  res_code = curl_easy_perform(curl);
+
+  if (res_code != CURLE_OK) {
+    printf("Fetch failed: %s\n", curl_easy_strerror(res_code));
+    return NULL;
   }
-  
-  // TODO: How do we get the response data? 
+
+  printf("Response body: %s\n", chunk.data);
+  page_t *parsed_page = parser_convert_to_page(chunk.data);
+
+  if (!parsed_page) {
+    printf("Could not parse response body!\n");
+    return NULL;
+  }
 
   curl_easy_cleanup(curl);
+
+  return parsed_page;
 }
 
 void api_intialize() {
@@ -81,10 +117,10 @@ void api_intialize() {
   }
 }
 
-void api_get_page(uint16_t page) {
-  make_request(page, 0);
+page_t *api_get_page(uint16_t page_id) {
+  return make_request(page_id, 0);
 }
 
-void api_get_page_range(uint16_t start, uint16_t end) {
-  make_request(start, end);
+page_t *api_get_page_range(uint16_t start, uint16_t end) {
+  return make_request(start, end);
 }
