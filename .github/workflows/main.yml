@@ -2,6 +2,8 @@ name: Format
 on:
   pull_request:
     branches: [master]
+    paths:
+    - 'src/**'
 jobs:
   format:
     runs-on: ubuntu-latest
