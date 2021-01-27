@@ -86,6 +86,7 @@ static page_t *make_request(uint16_t start, uint16_t end) {
   curl_easy_setopt(curl, CURLOPT_NOPROGRESS,    1L);
   curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
   curl_easy_setopt(curl, CURLOPT_WRITEDATA,     &chunk);
+  curl_easy_setopt(curl, CURLOPT_USERAGENT,     "libcurl-agent/1.0");
 
   res_code = curl_easy_perform(curl);
 
@@ -96,6 +97,8 @@ static page_t *make_request(uint16_t start, uint16_t end) {
 
   printf("Response body: %s\n", chunk.data);
   page_t *parsed_page = parser_convert_to_page(chunk.data);
+  
+  free(chunk.data);
 
   if (!parsed_page) {
     printf("Could not parse response body!\n");
@@ -125,4 +128,5 @@ page_t *api_get_page_range(uint16_t start, uint16_t end) {
 
 void api_destroy() {
   curl_easy_cleanup(curl);
+  curl_global_cleanup();
 }

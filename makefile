@@ -17,6 +17,9 @@ main: src/main.c $(OBJ_FILES)
 run: main
 	$(BUILD_PATH)
 
+memtest: main
+	valgrind --leak-check=full --show-leak-kinds=all ./build/ttt.out
+	
 clean:
 	rm -f src/*.o
 	rm -rf ./$(BUILD_DIR)
