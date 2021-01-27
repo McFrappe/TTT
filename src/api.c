@@ -96,7 +96,7 @@ static page_t *make_request(uint16_t start, uint16_t end) {
   }
 
   printf("Response body: %s\n", chunk.data);
-  page_t *parsed_page = parser_convert_to_page(chunk.data);
+  page_t *parsed_page = parser_convert_to_page(chunk.data, chunk.size);
   
   free(chunk.data);
 
