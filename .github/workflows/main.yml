@@ -1,0 +1,22 @@
+name: Format
+on:
+  pull_request:
+    branches: [master]
+    paths:
+    - 'src/**'
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.head_ref }}
+      - name: Install astyle
+        run: sudo apt-get install astyle
+      - name: Format Code
+        run: astyle -r -A2 -s4 -s -p -xg -H -U -f -xL -xV -xe -k3 -W3 -xb -j -xf -c -n src/*.c src/*.h
+      - name: Commit changes
+        uses: stefanzweifel/git-auto-commit-action@v4.1.2
+        with:
+          commit_message: Apply formatting changes to .c and .h files (Astyle)
+          branch: ${{ github.head_ref }}
