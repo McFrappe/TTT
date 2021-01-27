@@ -4,15 +4,15 @@
 #include <curl/curl.h>
 
 enum pages {
-  HOME = 100,
-  NEWS = 101,
-  FOREIGN_NEWS = 104,
-  ECONOMY = 200,
-  SPORT = 300,
-  STOCK_MARKET = 330,
-  SPORT_SERVICE = 376,
-  TV = 600,
-  CONTENTS = 700
+    HOME = 100,
+    NEWS = 101,
+    FOREIGN_NEWS = 104,
+    ECONOMY = 200,
+    SPORT = 300,
+    STOCK_MARKET = 330,
+    SPORT_SERVICE = 376,
+    TV = 600,
+    CONTENTS = 700
 };
 
 typedef enum pages pages_t;
