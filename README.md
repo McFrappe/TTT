@@ -1,6 +1,16 @@
 # TTT
-TTT, Short for Text Tv Terminal, is a program that runs in your terminal and displays information from well known usage of TextTv on televisions.
+TTT, Terminal Text Tv, is a terminal version of Text TV.
 
-[API to use](https://texttv.nu/blogg/texttv-api)
+Uses the [Text TV API](https://texttv.nu/blogg/texttv-api).
 
-[NCURSES](https://tldp.org/HOWTO/NCURSES-Programming-HOWTO/index.html)
+## Requirements
+* [libcurl](https://curl.se/docs/install.html)
+* [JSMN](https://github.com/zserge/jsmn)
+* [ncurses](https://tldp.org/HOWTO/NCURSES-Programming-HOWTO/index.html)
+
+## Usage
+```
+make run        # runs and compiles the program
+make test       # runs tests
+make memtest    # runs tests through valgrind
+```
