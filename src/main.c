@@ -2,5 +2,6 @@
 #include "api.h"
 
 int main(void) {
-  return 0;
+    initialize_ui();
+    return 0;
 }
