@@ -1,37 +1,101 @@
 #include "parser.h"
+#include <assert.h>
 #include <string.h>
 #include "../lib/jsmn.h"
 
 #define TOKENS_SIZE 128
 #define EXPECTED_OBJECT_SIZE 8
 
-static page_t *parse_object(const char *data, jsmntok_t obj, jsmntok_t *tokens, size_t obj_index) {
+static char *get_string_value(const char *data, jsmntok_t token) {
+    assert(data != NULL);
+
+    size_t length = token.end - token.start;
+
+    if (length == 0)
+        return NULL;
+
+    char *str = calloc(length + 1, sizeof(char));
+    str[length] = '\0';
+    strncpy(str, data + token.start, length);
+    return str;
+}
+
+static void parse_key_value(page_t *page, const char *data, jsmntok_t token, jsmntok_t next_token) {
+    char *value = NULL;
+    char *key = get_string_value(data, token);
+
+    // TODO: Why the fuk does only num work?
+    if (strcmp(key, "num") == 0) {
+        value = get_string_value(data, next_token);
+        uint16_t id = atoi(value);
+
+        if (!id) {
+            printf("Expected numeric value for key, but got string: %s\n", value);
+            return;
+        }
+
+        page->id = id;
+    } else if (strcmp(key, "prev_page") == 0) {
+        value = get_string_value(data, next_token);
+        uint16_t prev_id = atoi(value);
+
+        if (!prev_id) {
+            printf("Expected numeric value for key, but got string: %s\n", value);
+            return;
+        }
+
+        page->prev_id = prev_id;
+    } else if (strcmp(key, "next_page") == 0) {
+        value = get_string_value(data, next_token);
+        uint16_t next_id = atoi(value);
+
+        if (!next_id) {
+            printf("Expected numeric value for key, but got string: %s\n", value);
+            return;
+        }
+
+        page->next_id = next_id;
+    } else if (strcmp(key, "date_updated_unix") == 0) {
+        value = get_string_value(data, next_token);
+        uint64_t date = atoi(value);
+
+        if (!date) {
+            printf("Expected numeric value for key, but got string: %s\n", value);
+            return;
+        }
+
+        page->unix_date = date;
+    } else if (strcmp(key, "title") == 0) {
+        page->title = get_string_value(data, next_token);
+    }
+}
+
+static page_t *parse_object(const char *data, jsmntok_t obj, jsmntok_t *tokens, size_t *obj_index) {
     jsmntok_t cursor;
     page_t *page = calloc(1, sizeof(page_t));
+    size_t iterations = 0;
+    size_t i = *obj_index + 1;
 
-    for (size_t i = 1; i <= obj.size; i++) {
-        cursor = tokens[i + obj_index];
+    while (iterations < obj.size) {
+        cursor = tokens[i];
 
-        if (cursor.type == JSMN_STRING) {
-            printf("PAGE - String: %d\n", cursor.size);
+        if (cursor.type == JSMN_STRING || cursor.type == JSMN_PRIMITIVE) {
+            parse_key_value(page, data, cursor, tokens[i + 1]);
+            i++;
         } else if (cursor.type == JSMN_ARRAY) {
-            printf("PAGE - Array size: %d\n", cursor.size);
-        } else if (cursor.type == JSMN_PRIMITIVE) {
-            printf("PAGE - Primitive: %d\n", cursor.size);
+            // TODO: Parse array
+            i += cursor.size;
         } else {
             printf("Found unhandled token type in page: %d\n", cursor.type);
             continue;
         }
+
+        iterations++;
+        i++;
     }
 
-    *page = (page_t) {
-        .id = 0,
-        .prev_id = 0,
-        .next_id = 0,
-        .unix_date = 0,
-        .title = "Hello from parser",
-        .content = NULL,
-    };
+    // TODO: Should we have -1?
+    *obj_index = i - 1;
 
     return page;
 }
@@ -56,33 +120,25 @@ page_collection_t *parser_convert_to_pages(const char *data, size_t size) {
         return NULL;
     }
 
-    jsmntok_t array = tokens[0];
-    printf("JSON array size: %d\n", array.size);
-
     size_t parsed_objects = 0;
+    jsmntok_t array = tokens[0];
     page_t **pages = calloc(array.size, sizeof(page_t*));
 
     for (size_t i = 1; i < keys; i++) {
         jsmntok_t token = tokens[i];
 
-        printf("Index: %zd\n", i);
         if (token.type == JSMN_OBJECT) {
             if (token.size != EXPECTED_OBJECT_SIZE) {
                 printf("Failed to parse JSON page object with invalid size: %d\n", token.size);
                 continue;
             }
 
-            page_t *page = parse_object(data, token, tokens, i);
-
-            // Move forward to the first token after the current page object
-            i += token.size;
+            page_t *page = parse_object(data, token, tokens, &i);
 
             if (page) {
                 pages[parsed_objects] = page;
                 parsed_objects++;
             }
-        } else {
-            printf("Key type: %d\n", token.type);
         }
     }
 
