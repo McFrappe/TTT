@@ -34,3 +34,4 @@ struct page_collection {
 };
 
 page_collection_t *parser_convert_to_pages(const char *data, size_t size);
+void destroy_page_collection(page_collection_t *collection);

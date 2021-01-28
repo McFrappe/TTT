@@ -92,3 +92,11 @@ page_collection_t *parser_convert_to_pages(const char *data, size_t size) {
 
     return collection;
 }
+
+void destroy_page_collection(page_collection_t *collection) {
+    for (size_t i = 0; i < collection->size; i++) {
+        free(collection->pages[i]);
+    }
+
+    free(collection);
+}
