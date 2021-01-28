@@ -1,14 +1,12 @@
-CC					    = gcc
-CFLAGS				  = -Wall -pedantic -g
-CFLAGS_LIB		  = -c
-CURL_LIB			  = -lcurl
-LIB_PATH			  = lib
-OBJ_FILES			  = src/ui.c src/api.c src/parser.c
-BUILD_DIR			  = build
-BUILD_PATH			= $(BUILD_DIR)/ttt.out
-SHOW_ALL_KINDS	= --show-leak-kinds=all
-SHOW_LEAK_CHECK	= --leak-check=full
-NCURSES_LIB     =-lncurses
+CC=gcc
+CFLAGS=-Wall -pedantic -g
+CFLAGS_LIB=-c
+CURL_LIB=-lcurl
+NCURSES_LIB=-lncurses
+OBJ_FILES=src/ui.c src/api.c src/parser.c
+BUILD_DIR=build
+BUILD_PATH=$(BUILD_DIR)/ttt.out
+VALGRIND_FLAGS=--leak-check=full --show-leak-kinds=all --suppressions=static/valgrind.supp
 
 main: src/main.c $(OBJ_FILES)
 	mkdir -p $(BUILD_DIR)
@@ -21,8 +19,8 @@ run: main
 	$(BUILD_PATH)
 
 memtest: main
-	valgrind $(SHOW_LEAK_CHECK) ./build/ttt.out
-	
+	valgrind $(VALGRIND_FLAGS) ./build/ttt.out
+
 clean:
 	rm -f src/*.o
 	rm -rf ./$(BUILD_DIR)

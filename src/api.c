@@ -67,9 +67,8 @@ static void create_endpoint_url(char *buf, size_t buf_size, uint16_t start, uint
 static page_t *make_request(uint16_t start, uint16_t end) {
     assert(start != 0);
 
-    if (!curl) {
+    if (!curl)
         api_intialize();
-    }
 
     create_endpoint_url(url_buf, URL_BUF_SIZE, start, end);
     // Create chunk to store data in
@@ -86,6 +85,9 @@ static page_t *make_request(uint16_t start, uint16_t end) {
     res_code = curl_easy_perform(curl);
 
     if (res_code != CURLE_OK) {
+        if (chunk.data)
+            free(chunk.data);
+
         printf("Fetch failed: %s\n", curl_easy_strerror(res_code));
         return NULL;
     }
@@ -121,6 +123,10 @@ page_t *api_get_page_range(uint16_t start, uint16_t end) {
 }
 
 void api_destroy() {
+    // Valgrind detects memory that does not get free'd.
+    // This seems to be a known issue (?)
+    // https://stackoverflow.com/questions/11494950/memory-leak-from-curl-library
+    // The errors in 'memtest' are hidden using a valrind suppression file.
     curl_easy_cleanup(curl);
     curl_global_cleanup();
 }
