@@ -64,7 +64,7 @@ static void create_endpoint_url(char *buf, size_t buf_size, uint16_t start, uint
 
 
 // TODO: Return error(s) and display in UI
-static page_t *make_request(uint16_t start, uint16_t end) {
+static page_collection_t *make_request(uint16_t start, uint16_t end) {
     assert(start != 0);
 
     if (!curl)
@@ -93,15 +93,15 @@ static page_t *make_request(uint16_t start, uint16_t end) {
     }
 
     printf("Response body: %s\n", chunk.data);
-    page_t *parsed_page = parser_convert_to_page(chunk.data, chunk.size);
+    page_collection_t *collection = parser_convert_to_pages(chunk.data, chunk.size);
     free(chunk.data);
 
-    if (!parsed_page) {
+    if (!collection) {
         printf("Could not parse response body!\n");
         return NULL;
     }
 
-    return parsed_page;
+    return collection;
 }
 
 void api_intialize() {
@@ -114,11 +114,11 @@ void api_intialize() {
     }
 }
 
-page_t *api_get_page(uint16_t page_id) {
+page_collection_t *api_get_page(uint16_t page_id) {
     return make_request(page_id, 0);
 }
 
-page_t *api_get_page_range(uint16_t start, uint16_t end) {
+page_collection_t *api_get_page_range(uint16_t start, uint16_t end) {
     return make_request(start, end);
 }
 
