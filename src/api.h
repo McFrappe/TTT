@@ -17,7 +17,7 @@ enum page_types {
 
 typedef enum page_types page_types_t;
 
-void api_intialize();
+void api_initialize();
 page_collection_t *api_get_page(uint16_t page);
 page_collection_t *api_get_page_range(uint16_t range_start, uint16_t range_end);
 void api_destroy();

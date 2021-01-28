@@ -68,7 +68,7 @@ static page_collection_t *make_request(uint16_t start, uint16_t end) {
     assert(start != 0);
 
     if (!curl)
-        api_intialize();
+        api_initialize();
 
     create_endpoint_url(url_buf, URL_BUF_SIZE, start, end);
     // Create chunk to store data in
@@ -104,7 +104,7 @@ static page_collection_t *make_request(uint16_t start, uint16_t end) {
     return collection;
 }
 
-void api_intialize() {
+void api_initialize() {
     curl_global_init(CURL_GLOBAL_DEFAULT);
     curl = curl_easy_init();
 

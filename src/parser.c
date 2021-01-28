@@ -1,6 +1,4 @@
 #include "parser.h"
-#include <assert.h>
-#include <string.h>
 #include "../lib/jsmn.h"
 
 #define TOKENS_SIZE 128
@@ -25,9 +23,12 @@ static void parse_key_value(page_t *page, const char *data, jsmntok_t token, jsm
     char *key = get_string_value(data, token);
 
     // TODO: Why the fuk does only num work?
+    // TODO: Abstraction
     if (strcmp(key, "num") == 0) {
         value = get_string_value(data, next_token);
         uint16_t id = atoi(value);
+
+        free(value);
 
         if (!id) {
             printf("Expected numeric value for key, but got string: %s\n", value);
@@ -39,6 +40,8 @@ static void parse_key_value(page_t *page, const char *data, jsmntok_t token, jsm
         value = get_string_value(data, next_token);
         uint16_t prev_id = atoi(value);
 
+        free(value);
+
         if (!prev_id) {
             printf("Expected numeric value for key, but got string: %s\n", value);
             return;
@@ -49,6 +52,8 @@ static void parse_key_value(page_t *page, const char *data, jsmntok_t token, jsm
         value = get_string_value(data, next_token);
         uint16_t next_id = atoi(value);
 
+        free(value);
+
         if (!next_id) {
             printf("Expected numeric value for key, but got string: %s\n", value);
             return;
@@ -58,6 +63,8 @@ static void parse_key_value(page_t *page, const char *data, jsmntok_t token, jsm
     } else if (strcmp(key, "date_updated_unix") == 0) {
         value = get_string_value(data, next_token);
         uint64_t date = atoi(value);
+
+        free(value);
 
         if (!date) {
             printf("Expected numeric value for key, but got string: %s\n", value);
@@ -70,6 +77,7 @@ static void parse_key_value(page_t *page, const char *data, jsmntok_t token, jsm
     }
 }
 
+// TODO: Fix memory leaks
 static page_t *parse_object(const char *data, jsmntok_t obj, jsmntok_t *tokens, size_t *obj_index) {
     jsmntok_t cursor;
     page_t *page = calloc(1, sizeof(page_t));
