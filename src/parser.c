@@ -18,12 +18,23 @@ static char *get_string_value(const char *data, jsmntok_t token) {
     return str;
 }
 
+// TODO: Pass in the entire tokens array so that we can loop through all items
+static post_content_t **get_content(const char *data, jsmntok_t token) {
+    /* char *content_string; */
+
+    post_content_t **content = calloc(token.size, sizeof(post_content_t*));
+
+    for (size_t i = 0; i < token.size; i++) {
+        /* content_string = get_string_value(data, token) */
+    }
+
+    return content;
+}
+
 static void parse_key_value(page_t *page, const char *data, jsmntok_t token, jsmntok_t next_token) {
     char *value = NULL;
     char *key = get_string_value(data, token);
 
-    // TODO: Why the fuk does only num work?
-    // TODO: Abstraction
     if (strcmp(key, "num") == 0) {
         value = get_string_value(data, next_token);
         uint16_t id = atoi(value);
@@ -74,6 +85,9 @@ static void parse_key_value(page_t *page, const char *data, jsmntok_t token, jsm
         page->unix_date = date;
     } else if (strcmp(key, "title") == 0) {
         page->title = get_string_value(data, next_token);
+    } else if (strcmp(key, "content") == 0) {
+        page->content_size = next_token.size;
+        page->content = get_content(data, next_token);
     }
 
     free(key);
@@ -89,11 +103,11 @@ static page_t *parse_object(const char *data, jsmntok_t obj, jsmntok_t *tokens, 
     while (iterations < obj.size) {
         cursor = tokens[i];
 
+        parse_key_value(page, data, cursor, tokens[i + 1]);
+
         if (cursor.type == JSMN_STRING || cursor.type == JSMN_PRIMITIVE) {
-            parse_key_value(page, data, cursor, tokens[i + 1]);
             i++;
         } else if (cursor.type == JSMN_ARRAY) {
-            // TODO: Parse array
             i += cursor.size;
         } else {
             printf("Found unhandled token type in page: %d\n", cursor.type);
