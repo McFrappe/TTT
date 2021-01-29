@@ -31,7 +31,7 @@ static post_content_t **get_content(const char *data, jsmntok_t token) {
     return content;
 }
 
-static void parse_key_value(page_t *page, const char *data, jsmntok_t token, jsmntok_t next_token) {
+static void parse_key_value(page_t *page, const char *data, jsmntok_t token, jsmntok_t next_token, size_t *index) {
     char *value = NULL;
     char *key = get_string_value(data, token);
 
@@ -86,9 +86,12 @@ static void parse_key_value(page_t *page, const char *data, jsmntok_t token, jsm
     } else if (strcmp(key, "title") == 0) {
         page->title = get_string_value(data, next_token);
     } else if (strcmp(key, "content") == 0) {
+        *index += next_token.size;
         page->content_size = next_token.size;
         page->content = get_content(data, next_token);
     }
+
+    *index += 1;
 
     free(key);
 }
@@ -102,18 +105,7 @@ static page_t *parse_object(const char *data, jsmntok_t obj, jsmntok_t *tokens, 
 
     while (iterations < obj.size) {
         cursor = tokens[i];
-
-        parse_key_value(page, data, cursor, tokens[i + 1]);
-
-        if (cursor.type == JSMN_STRING || cursor.type == JSMN_PRIMITIVE) {
-            i++;
-        } else if (cursor.type == JSMN_ARRAY) {
-            i += cursor.size;
-        } else {
-            printf("Found unhandled token type in page: %d\n", cursor.type);
-            continue;
-        }
-
+        parse_key_value(page, data, cursor, tokens[i + 1], &i);
         iterations++;
         i++;
     }
