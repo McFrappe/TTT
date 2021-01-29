@@ -73,7 +73,6 @@ static page_collection_t *make_request(uint16_t start, uint16_t end) {
     }
 
     create_endpoint_url(url_buf, URL_BUF_SIZE, start, end);
-    // Create chunk to store data in
     response_chunk_t chunk = {
         // TODO: Allocate more memory at once to prevent unnecessary realloc's?
         .data = malloc(1),
@@ -96,7 +95,7 @@ static page_collection_t *make_request(uint16_t start, uint16_t end) {
     }
 
     //printf("Response body: %s\n", chunk.data);
-    page_collection_t *collection = parser_convert_to_pages(chunk.data, chunk.size);
+    page_collection_t *collection = parser_get_page_collection(chunk.data, chunk.size);
     free(chunk.data);
 
     if (!collection) {

@@ -3,21 +3,21 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 typedef struct page page_t;
-typedef struct post post_t;
 typedef struct page_collection page_collection_t;
-typedef struct post_content post_content_t;
-typedef enum post_content_type {
+typedef struct page_content page_content_t;
+typedef enum page_content_type_t {
     HEADLINE,
     ARTICLE
-} post_content_type_t;
+} page_content_type_t;
 
-struct post_content {
+struct page_content {
     char *title;
     char *text;
     uint16_t id;
-    post_content_type_t type;
+    page_content_type_t type;
 };
 
 struct page {
@@ -25,7 +25,7 @@ struct page {
     uint64_t unix_date;
     char *title;
     size_t content_size;
-    post_content_t **content;
+    page_content_t **content;
 };
 
 struct page_collection {

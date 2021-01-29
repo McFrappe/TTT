@@ -2,7 +2,6 @@
 #include "api.h"
 #include "pages.h"
 #include "parser.h"
-#include <stdlib.h>
 
 int main(void) {
     api_initialize();
