@@ -6,12 +6,9 @@
 
 int main(void) {
     api_initialize();
-    page_collection_t *home = api_get_page_range(HOME, FOREIGN_NEWS);
-    page_collection_t *news = api_get_page(NEWS);
-    page_collection_print(home, "HOME");
-    page_collection_print(news, "NEWS");
-    page_collection_destroy(home);
-    page_collection_destroy(news);
+    page_collection_t *test = api_get_page_range(HOME, FOREIGN_NEWS);
+    page_collection_print(test, "TEST");
+    page_collection_destroy(test);
     api_destroy();
     return 0;
 }

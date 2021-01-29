@@ -1,8 +1,7 @@
 #include "parser.h"
 #include "../lib/jsmn.h"
 
-#define TOKENS_SIZE 128
-#define EXPECTED_OBJECT_SIZE 8
+#define TOKENS_SIZE 256
 
 static char *get_string_value(const char *data, jsmntok_t token) {
     assert(data != NULL);
@@ -140,11 +139,6 @@ page_collection_t *parser_convert_to_pages(const char *data, size_t size) {
         jsmntok_t token = tokens[i];
 
         if (token.type == JSMN_OBJECT) {
-            if (token.size != EXPECTED_OBJECT_SIZE) {
-                printf("Failed to parse JSON page object with invalid size: %d\n", token.size);
-                continue;
-            }
-
             page_t *page = parse_object(data, token, tokens, &i);
 
             if (page) {
