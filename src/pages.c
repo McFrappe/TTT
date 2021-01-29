@@ -16,14 +16,16 @@ void page_collection_print(page_collection_t *collection, const char *name) {
 
 // Internal destroy function for content that is in a page_t struct
 static void post_content_destroy(post_content_t **content, size_t content_size) {
-    if (!content)
+    if (!content) {
         return;
+    }
 
     for (size_t i = 0; i < content_size; i++) {
         post_content_t *current = content[i];
 
-        if (!current)
+        if (!current) {
             continue;
+        }
 
         free(current->title);
         free(current->text);

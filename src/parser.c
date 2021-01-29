@@ -5,11 +5,11 @@
 
 static char *get_string_value(const char *data, jsmntok_t token) {
     assert(data != NULL);
-
     size_t length = token.end - token.start;
 
-    if (length == 0)
+    if (length == 0) {
         return NULL;
+    }
 
     char *str = calloc(length + 1, sizeof(char));
     str[length] = '\0';
@@ -20,8 +20,7 @@ static char *get_string_value(const char *data, jsmntok_t token) {
 // TODO: Pass in the entire tokens array so that we can loop through all items
 static post_content_t **get_content(const char *data, jsmntok_t token) {
     /* char *content_string; */
-
-    post_content_t **content = calloc(token.size, sizeof(post_content_t*));
+    post_content_t **content = calloc(token.size, sizeof(post_content_t *));
 
     for (size_t i = 0; i < token.size; i++) {
         /* content_string = get_string_value(data, token) */
@@ -37,7 +36,6 @@ static void parse_key_value(page_t *page, const char *data, jsmntok_t token, jsm
     if (strcmp(key, "num") == 0) {
         value = get_string_value(data, next_token);
         uint16_t id = atoi(value);
-
         free(value);
 
         if (!id) {
@@ -49,7 +47,6 @@ static void parse_key_value(page_t *page, const char *data, jsmntok_t token, jsm
     } else if (strcmp(key, "prev_page") == 0) {
         value = get_string_value(data, next_token);
         uint16_t prev_id = atoi(value);
-
         free(value);
 
         if (!prev_id) {
@@ -61,7 +58,6 @@ static void parse_key_value(page_t *page, const char *data, jsmntok_t token, jsm
     } else if (strcmp(key, "next_page") == 0) {
         value = get_string_value(data, next_token);
         uint16_t next_id = atoi(value);
-
         free(value);
 
         if (!next_id) {
@@ -73,7 +69,6 @@ static void parse_key_value(page_t *page, const char *data, jsmntok_t token, jsm
     } else if (strcmp(key, "date_updated_unix") == 0) {
         value = get_string_value(data, next_token);
         uint64_t date = atoi(value);
-
         free(value);
 
         if (!date) {
@@ -91,7 +86,6 @@ static void parse_key_value(page_t *page, const char *data, jsmntok_t token, jsm
     }
 
     *index += 1;
-
     free(key);
 }
 
@@ -133,7 +127,7 @@ page_collection_t *parser_convert_to_pages(const char *data, size_t size) {
 
     size_t parsed_objects = 0;
     jsmntok_t array = tokens[0];
-    page_t **pages = calloc(array.size, sizeof(page_t*));
+    page_t **pages = calloc(array.size, sizeof(page_t *));
 
     for (size_t i = 1; i < keys; i++) {
         jsmntok_t token = tokens[i];
@@ -151,6 +145,5 @@ page_collection_t *parser_convert_to_pages(const char *data, size_t size) {
     page_collection_t *collection = calloc(1, sizeof(page_collection_t));
     collection->pages = pages;
     collection->size = parsed_objects;
-
     return collection;
 }

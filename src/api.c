@@ -68,8 +68,9 @@ static void create_endpoint_url(char *buf, size_t buf_size, uint16_t start, uint
 static page_collection_t *make_request(uint16_t start, uint16_t end) {
     assert(start != 0);
 
-    if (!curl)
+    if (!curl) {
         api_initialize();
+    }
 
     create_endpoint_url(url_buf, URL_BUF_SIZE, start, end);
     // Create chunk to store data in
@@ -86,8 +87,9 @@ static page_collection_t *make_request(uint16_t start, uint16_t end) {
     res_code = curl_easy_perform(curl);
 
     if (res_code != CURLE_OK) {
-        if (chunk.data)
+        if (chunk.data) {
             free(chunk.data);
+        }
 
         printf("Fetch failed: %s\n", curl_easy_strerror(res_code));
         return NULL;
@@ -121,6 +123,7 @@ page_collection_t *api_get_page(uint16_t page_id) {
 
 page_collection_t *api_get_page_range(uint16_t start, uint16_t end) {
     uint16_t range = end - start;
+
     if (range > MAX_RANGE) {
         // TODO: If the range is larger than the MAX, make several requests or error?
         //       Requesting a large amount of pages will just hang the program for a long time
