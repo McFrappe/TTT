@@ -96,7 +96,6 @@ static void parse_key_value(page_t *page, const char *data, jsmntok_t token, jsm
     free(key);
 }
 
-// TODO: Fix memory leaks
 static page_t *parse_object(const char *data, jsmntok_t obj, jsmntok_t *tokens, size_t *obj_index) {
     jsmntok_t cursor;
     page_t *page = calloc(1, sizeof(page_t));
@@ -109,9 +108,6 @@ static page_t *parse_object(const char *data, jsmntok_t obj, jsmntok_t *tokens, 
         iterations++;
         i++;
     }
-
-    // TODO: Should we have -1?
-    *obj_index = i - 1;
 
     return page;
 }
