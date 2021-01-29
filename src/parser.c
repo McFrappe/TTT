@@ -2,6 +2,44 @@
 #include "../lib/jsmn.h"
 
 #define TOKENS_SIZE 256
+#define ESCAPED_CHAR_SEQUENCE_LENGTH 5
+
+static char *unescape_characters(const char *str, size_t length) {
+    char buf[length];
+    char sequence_buf[ESCAPED_CHAR_SEQUENCE_LENGTH];
+    size_t buf_position = 0;
+    
+    for (size_t i = 0; i < length; i++) {
+        if (str[i] == '\\' && (i + ESCAPED_CHAR_SEQUENCE_LENGTH) <= length) {
+            for (size_t j = 0; j < ESCAPED_CHAR_SEQUENCE_LENGTH; j++ ) {
+                sequence_buf[j] = str[i + j + 1];
+            }
+            
+            // TODO: This does not work for escape sequences that are not 4 characters in length
+            i += ESCAPED_CHAR_SEQUENCE_LENGTH;
+            
+            // TODO: Will there be situation where its capitalized?
+            // TODO: How in the fuck do we set åäö in the buffer?
+            if (strncmp(sequence_buf, "u00e4", ESCAPED_CHAR_SEQUENCE_LENGTH))
+                buf[buf_position] = 'a';
+            else if (strncmp(sequence_buf, "u00e5", ESCAPED_CHAR_SEQUENCE_LENGTH)) {
+                buf[buf_position] = 'a';
+            } else if (strncmp(sequence_buf, "u00e6", ESCAPED_CHAR_SEQUENCE_LENGTH)) {
+                buf[buf_position] = 'o';
+            } 
+        } else {
+            buf[buf_position] = str[i];
+        }
+        
+        buf_position++;
+    }
+    
+
+    char *escaped = calloc(buf_position + 1, sizeof(char));
+    escaped[buf_position] = '\0';
+    strncpy(escaped, buf, buf_position + 1);
+    return escaped;
+}
 
 static char *get_string_value(const char *data, jsmntok_t token) {
     assert(data != NULL);
@@ -78,7 +116,9 @@ static void parse_key_value(page_t *page, const char *data, jsmntok_t token, jsm
 
         page->unix_date = date;
     } else if (strcmp(key, "title") == 0) {
-        page->title = get_string_value(data, next_token);
+        char *title = get_string_value(data, next_token);
+        page->title = unescape_characters(title, next_token.end - next_token.start + 1);
+        free(title);
     } else if (strcmp(key, "content") == 0) {
         *index += next_token.size;
         page->content_size = next_token.size;
