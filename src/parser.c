@@ -75,6 +75,8 @@ static void parse_key_value(page_t *page, const char *data, jsmntok_t token, jsm
     } else if (strcmp(key, "title") == 0) {
         page->title = get_string_value(data, next_token);
     }
+
+    free(key);
 }
 
 // TODO: Fix memory leaks

@@ -15,23 +15,21 @@ void page_collection_print(page_collection_t *collection, const char *name) {
 }
 
 // Internal destroy function for content that is in a page_t struct
-static void post_content_destroy(size_t content_size, post_content_t **content) {
-    for (int i = 0; i < content_size; i++) {
+static void post_content_destroy(post_content_t **content, size_t content_size) {
+    for (size_t i = 0; i < content_size; i++) {
         post_content_t *current = content[i];
 
         free(current->title);
         free(current->text);
         free(current);
     }
+
     free(content);
 }
 
 void page_destroy(page_t *page) {
-    post_content_destroy(page->content_size, page->content);
-
+    post_content_destroy(page->content, page->content_size);
     free(page->title);
-    free(page->content);
-    free(page->content);
     free(page);
 }
 
@@ -40,5 +38,6 @@ void page_collection_destroy(page_collection_t *collection) {
         page_destroy(collection->pages[i]);
     }
 
+    free(collection->pages);
     free(collection);
 }
