@@ -7,6 +7,7 @@
 #define API_ID "terminaltexttv"
 #define URL_BUF_SIZE 256
 #define RANGE_BUF_SIZE 16
+#define MAX_RANGE 5
 
 typedef struct response_chunk {
     char *data;
@@ -64,11 +65,12 @@ static void create_endpoint_url(char *buf, size_t buf_size, uint16_t start, uint
 
 
 // TODO: Return error(s) and display in UI
-static page_t *make_request(uint16_t start, uint16_t end) {
+static page_collection_t *make_request(uint16_t start, uint16_t end) {
     assert(start != 0);
 
-    if (!curl)
-        api_intialize();
+    if (!curl) {
+        api_initialize();
+    }
 
     create_endpoint_url(url_buf, URL_BUF_SIZE, start, end);
     // Create chunk to store data in
@@ -85,26 +87,27 @@ static page_t *make_request(uint16_t start, uint16_t end) {
     res_code = curl_easy_perform(curl);
 
     if (res_code != CURLE_OK) {
-        if (chunk.data)
+        if (chunk.data) {
             free(chunk.data);
+        }
 
         printf("Fetch failed: %s\n", curl_easy_strerror(res_code));
         return NULL;
     }
 
-    printf("Response body: %s\n", chunk.data);
-    page_t *parsed_page = parser_convert_to_page(chunk.data, chunk.size);
+    //printf("Response body: %s\n", chunk.data);
+    page_collection_t *collection = parser_convert_to_pages(chunk.data, chunk.size);
     free(chunk.data);
 
-    if (!parsed_page) {
+    if (!collection) {
         printf("Could not parse response body!\n");
         return NULL;
     }
 
-    return parsed_page;
+    return collection;
 }
 
-void api_intialize() {
+void api_initialize() {
     curl_global_init(CURL_GLOBAL_DEFAULT);
     curl = curl_easy_init();
 
@@ -114,11 +117,18 @@ void api_intialize() {
     }
 }
 
-page_t *api_get_page(uint16_t page_id) {
+page_collection_t *api_get_page(uint16_t page_id) {
     return make_request(page_id, 0);
 }
 
-page_t *api_get_page_range(uint16_t start, uint16_t end) {
+page_collection_t *api_get_page_range(uint16_t start, uint16_t end) {
+    uint16_t range = end - start;
+
+    if (range > MAX_RANGE) {
+        // TODO: If the range is larger than the MAX, make several requests or error?
+        //       Requesting a large amount of pages will just hang the program for a long time
+    }
+
     return make_request(start, end);
 }
 
