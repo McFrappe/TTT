@@ -6,7 +6,7 @@ void page_collection_print(page_collection_t *collection, const char *name) {
         printf("* id: %d\n", collection->pages[i]->id);
         printf("* prev_id: %d\n", collection->pages[i]->prev_id);
         printf("* next_id: %d\n", collection->pages[i]->next_id);
-        printf("* unix_date: %zd\n", collection->pages[i]->unix_date);
+        printf("* unix_date: %llu\n", collection->pages[i]->unix_date);
         printf("* title: %s\n", collection->pages[i]->title);
         printf("* content_size: %zd\n", collection->pages[i]->content_size);
         // TODO: Print parsed content
