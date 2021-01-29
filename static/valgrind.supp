@@ -66,3 +66,105 @@
    fun:dlerror_run
    fun:__libc_dlopen_mode
 }
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:CRYPTO_malloc
+   fun:lh_new
+   obj:/usr/lib64/libcrypto.so.1.0.2k
+   obj:/usr/lib64/libcrypto.so.1.0.2k
+   obj:/usr/lib64/libcrypto.so.1.0.2k
+   fun:BIO_set
+   fun:BIO_new
+   fun:BIO_new_file
+   obj:/usr/lib64/libcrypto.so.1.0.2k
+   fun:CONF_modules_load_file
+   obj:/usr/lib64/libcurl.so.4.5.0
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:CRYPTO_malloc
+   fun:lh_new
+   obj:/usr/lib64/libcrypto.so.1.0.2k
+   obj:/usr/lib64/libcrypto.so.1.0.2k
+   obj:/usr/lib64/libcrypto.so.1.0.2k
+   fun:BIO_set
+   fun:BIO_new
+   fun:BIO_new_file
+   obj:/usr/lib64/libcrypto.so.1.0.2k
+   fun:CONF_modules_load_file
+   obj:/usr/lib64/libcurl.so.4.5.0
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:CRYPTO_malloc
+   fun:sk_new
+   obj:/usr/lib64/libcrypto.so.1.0.2k
+   obj:/usr/lib64/libcrypto.so.1.0.2k
+   fun:BIO_set
+   fun:BIO_new
+   fun:BIO_new_file
+   obj:/usr/lib64/libcrypto.so.1.0.2k
+   fun:CONF_modules_load_file
+   obj:/usr/lib64/libcurl.so.4.5.0
+   obj:/usr/lib64/libcurl.so.4.5.0
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:CRYPTO_malloc
+   fun:sk_new
+   obj:/usr/lib64/libcrypto.so.1.0.2k
+   obj:/usr/lib64/libcrypto.so.1.0.2k
+   fun:BIO_set
+   fun:BIO_new
+   fun:BIO_new_file
+   obj:/usr/lib64/libcrypto.so.1.0.2k
+   fun:CONF_modules_load_file
+   obj:/usr/lib64/libcurl.so.4.5.0
+   obj:/usr/lib64/libcurl.so.4.5.0
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:CRYPTO_malloc
+   fun:lh_insert
+   obj:/usr/lib64/libcrypto.so.1.0.2k
+   obj:/usr/lib64/libcrypto.so.1.0.2k
+   fun:BIO_set
+   fun:BIO_new
+   fun:BIO_new_file
+   obj:/usr/lib64/libcrypto.so.1.0.2k
+   fun:CONF_modules_load_file
+   obj:/usr/lib64/libcurl.so.4.5.0
+   obj:/usr/lib64/libcurl.so.4.5.0
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:CRYPTO_malloc
+   obj:/usr/lib64/libcrypto.so.1.0.2k
+   obj:/usr/lib64/libcrypto.so.1.0.2k
+   fun:BIO_set
+   fun:BIO_new
+   fun:BIO_new_file
+   obj:/usr/lib64/libcrypto.so.1.0.2k
+   fun:CONF_modules_load_file
+   obj:/usr/lib64/libcurl.so.4.5.0
+   obj:/usr/lib64/libcurl.so.4.5.0
+   fun:api_initialize
+}
