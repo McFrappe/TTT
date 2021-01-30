@@ -146,10 +146,9 @@ static page_content_t *parse_page_content(const char *data, jsmntok_t **cursor) 
     *cursor += 1;
     char *content_string = get_string(data, *cursor);
     page_content_t *content = parser_get_page_content(
-        content_string,
-        calculate_token_length(*cursor)
-    );
-
+                                  content_string,
+                                  calculate_token_length(*cursor)
+                              );
     move_forward(cursor, array_size - 1);
     free(content_string);
     return content;
