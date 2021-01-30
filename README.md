@@ -1,3 +1,5 @@
+![Unit Testing](https://github.com/McFrappe/TTT/workflows/CI%20-%20C%20Language%20-%20Running%20tests/badge.svg)
+![Formatted .c and .h files](https://github.com/McFrappe/TTT/workflows/Format/badge.svg)
 # TTT
 TTT, Terminal Text TV, is a terminal version of Text TV written in C.
 
