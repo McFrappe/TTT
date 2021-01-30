@@ -2,8 +2,8 @@ CC=gcc
 CFLAGS=-Wall -pedantic -g
 CFLAGS_LIB=-c
 
-LIBS:=-lcurl -lncurses
-TEST_LIBS:=-lcunit
+LIBS=-lcurl -lncurses
+TEST_LIBS=-lcunit
 
 BASE_OBJ_FILES:=src/parser.o src/pages.o
 OBJ_FILES:=src/ui.o src/api.o $(BASE_OBJ_FILES)
@@ -24,10 +24,10 @@ VALGRIND_FLAGS=--leak-check=full \
 	$(CC) $(CFLAGS) $(CFLAGS_LIB) $(LIBS) $^ -o $@
 
 main: prebuild $(MAIN_FILES)
-	$(CC) $(CFLAGS) $(LIBS) $(MAIN_FILES) -o $(TTT_OUT_PATH)
+	$(CC) $(CFLAGS) $(MAIN_FILES) -o $(TTT_OUT_PATH) $(LIBS)
 
 unittests: prebuild $(TEST_FILES)
-	$(CC) $(CFLAGS) $(TEST_LIBS) $(TEST_FILES) -o $(TEST_OUT_PATH)
+	$(CC) $(CFLAGS) $(TEST_FILES) -o $(TEST_OUT_PATH) $(TEST_LIBS)
 
 run: main
 	./$(TTT_OUT_PATH)
