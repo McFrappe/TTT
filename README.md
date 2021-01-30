@@ -1,16 +1,20 @@
 # TTT
-TTT, Terminal Text Tv, is a terminal version of Text TV.
+TTT, Terminal Text TV, is a terminal version of Text TV written in C.
 
 Uses the [Text TV API](https://texttv.nu/blogg/texttv-api).
 
-## Requirements
+## Dependencies
 * [libcurl](https://curl.se/docs/install.html)
-* [JSMN](https://github.com/zserge/jsmn)
+* [jsmn](https://github.com/zserge/jsmn)
 * [ncurses](https://tldp.org/HOWTO/NCURSES-Programming-HOWTO/index.html)
 
 ## Usage
 ```
-make run        # runs and compiles the program
-make test       # runs tests
-make memtest    # runs tests through valgrind
+make run        # run the program
+make memrun     $ run the program with valgrind
+
+make test       # run tests
+make memtest    # run tests with valgrind
+
+make clean      # removes all compiled files
 ```
