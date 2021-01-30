@@ -1,0 +1,28 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI - C Language - Running tests
+
+on: [push, pull_request]    
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    
+# Install dependancies
+    - name: install_cunit_ubuntu
+      run: |
+            sudo apt-get update
+            sudo apt-get install libcunit1 libcunit1-doc libcunit1-dev
+            sudo apt-get install valgrind
+    
+    - name: cleanup
+      run: make clean
+
+    - name: run tests
+      run: make test
+
+    - name: cleanup in root
+      run: make clean

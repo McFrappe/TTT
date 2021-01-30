@@ -20,7 +20,7 @@ main: src/main.c $(OBJ_FILES)
 unittests: prebuild test/unittests.c $(OBJ_FILES)
 	$(CC) $(CFLAGS) $(TEST_LIBS) $(TEST_FILES) -o $(TEST_OUT_PATH)
 
-run: main
+run: prebuild main
 	./$(TTT_OUT_PATH)
 
 memrun: main
