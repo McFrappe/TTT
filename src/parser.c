@@ -34,12 +34,14 @@ static char *get_unicode_string(const char *data, jsmntok_t *cursor) {
     char buf[length];
     char sequence_buf[ESCAPED_CHAR_SEQUENCE_LENGTH];
     size_t buf_position = 0;
+    size_t start_index = cursor->start;
+    size_t end_index = cursor->end;
 
-    for (size_t i = cursor->start; i < cursor->start + length; i++, buf_position++) {
+    for (size_t i = start_index; i < end_index; i++, buf_position++) {
         // Only search for escape sequences with the format \uXXXX
         if (
             data[i] == '\\' &&
-            (i + ESCAPED_CHAR_SEQUENCE_LENGTH) <= cursor->start + length &&
+            (i + ESCAPED_CHAR_SEQUENCE_LENGTH) < end_index &&
             data[i + 1] == 'u'
         ) {
             for (size_t j = 0; j < ESCAPED_CHAR_SEQUENCE_LENGTH; j++) {
@@ -71,7 +73,7 @@ static char *get_unicode_string(const char *data, jsmntok_t *cursor) {
     // Removing escape sequences means that the string will shrink in size
     // so we use buf_position as length
     char *escaped = calloc(buf_position + 1, sizeof(char));
-    strncpy(escaped, buf, buf_position);
+    strncpy(escaped, buf, buf_position + 1);
     escaped[buf_position] = '\0';
     return escaped;
 }
@@ -131,9 +133,6 @@ page_content_t *parser_get_page_content(const char *content, size_t size) {
 }
 
 static page_content_t *parse_page_content(const char *data, jsmntok_t **cursor) {
-    // Go to the array token
-    *cursor += 1;
-
     if ((*cursor)->type != JSMN_ARRAY) {
         return NULL;
     }
@@ -172,7 +171,7 @@ static page_t *get_page(const char *data, jsmntok_t **cursor) {
         } else if (strcmp(key, "prev_page") == 0) {
             page->prev_id = get_unsigned_numeric(data, *cursor, UINT16_MAX);
         } else if (strcmp(key, "next_page") == 0) {
-            page->prev_id = get_unsigned_numeric(data, *cursor, UINT16_MAX);
+            page->next_id = get_unsigned_numeric(data, *cursor, UINT16_MAX);
         } else if (strcmp(key, "date_updated_unix") == 0) {
             page->unix_date = get_unsigned_numeric(data, *cursor, SIZE_MAX);
         } else if (strcmp(key, "title") == 0) {
