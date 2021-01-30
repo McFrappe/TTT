@@ -16,7 +16,6 @@ static size_t calculate_token_length(jsmntok_t *cursor) {
 
 /// @brief Moves a pointer to a token forward n steps
 static void move_forward(jsmntok_t **cursor, size_t steps) {
-    // TODO: Add test case for this
     // TODO: Do this recursively to make sure that we are actually at the end of the array
     //       For example, if we have an object inside the array, we must move more than 'size' steps
     for (size_t i = 0; i < steps; i++) {
@@ -73,7 +72,7 @@ static char *get_unicode_string(const char *data, jsmntok_t *cursor) {
     // Removing escape sequences means that the string will shrink in size
     // so we use buf_position as length
     char *escaped = calloc(buf_position + 1, sizeof(char));
-    strncpy(escaped, buf, buf_position + 1);
+    strncpy(escaped, buf, buf_position);
     escaped[buf_position] = '\0';
     return escaped;
 }

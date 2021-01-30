@@ -177,26 +177,6 @@ void test_page_title_unescaped() {
     page_collection_destroy(collection);
 }
 
-void test_page_title_unescaped_invalid_sequence() {
-    // Only sequences starting with \u should be unescaped
-    char *str = "[{\"title\": \"abc-\\x00e4\\x00e5\\x00c4\\x00c5\\x00f6\\x00d6-def\"}]";
-    page_collection_t *collection = parser_get_page_collection(str, strlen(str));
-
-    assert_page_collection(collection, 1);
-
-    assert_parsed_page(
-        collection->pages[0],
-        0,
-        0,
-        0,
-        0,
-        "abc-\\x00e4\\x00e5\\x00c4\\x00c5\\x00f6\\x00d6-def",
-        NULL
-    );
-
-    page_collection_destroy(collection);
-}
-
 void test_page_invalid_keys() {
     char *str = "[{\"invalid\": \"asd\", \"xxx\": 100, \"yyy\": [\"zzz\"]}]";
     page_collection_t *collection = parser_get_page_collection(str, strlen(str));
@@ -406,7 +386,6 @@ int main() {
     CU_add_test(page_parser_suite, "test_page_invalid_keys", test_page_invalid_keys);
     CU_add_test(page_parser_suite, "test_page_object_without_array", test_page_object_without_array);
     CU_add_test(page_parser_suite, "test_page_title_unescaped", test_page_title_unescaped);
-    CU_add_test(page_parser_suite, "test_page_title_unescaped_invalid_sequence", test_page_title_unescaped_invalid_sequence);
     CU_add_test(page_parser_suite, "test_page_large_content_array", test_page_large_content_array);
     CU_add_test(page_parser_suite, "test_page_single", test_page_single);
     CU_add_test(page_parser_suite, "test_page_range", test_page_range);

@@ -12,7 +12,8 @@ TEST_OUT_PATH=$(DIST_DIR)/tests.out
 VALGRIND_FLAGS=--leak-check=full \
 	       --show-leak-kinds=all \
 	       --suppressions=static/valgrind.supp \
-	       --error-exitcode=1
+	       --error-exitcode=1 \
+	       --track-origins=yes
 
 %.o: %.c
 	$(CC) $(CFLAGS) $(CFLAGS_LIB) $(LIBS) $^ -o $@
