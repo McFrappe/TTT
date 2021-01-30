@@ -26,13 +26,11 @@ static char *parser_get_unicode_string(const char *data, jsmntok_t token) {
             (i + ESCAPED_CHAR_SEQUENCE_LENGTH) <= length &&
             data[i + 1] == 'u'
         ) {
-            for (size_t j = 0; j < ESCAPED_CHAR_SEQUENCE_LENGTH; j++ ) {
+            for (size_t j = 0; j < ESCAPED_CHAR_SEQUENCE_LENGTH; j++) {
                 sequence_buf[j] = data[i + j + 1];
             }
 
             i += ESCAPED_CHAR_SEQUENCE_LENGTH;
-
-            printf("sequence: %s\n", sequence_buf);
 
             if (
                 strncmp(sequence_buf, "u00e4", ESCAPED_CHAR_SEQUENCE_LENGTH) == 0 ||
@@ -110,8 +108,13 @@ static size_t parser_get_unsigned_numeric(const char *data, jsmntok_t token, siz
     return numeric;
 }
 
+page_content_t *parser_get_page_content(const char *content, size_t size) {
+    printf("Content data: %s\n", content);
+    return NULL;
+}
+
 // TODO: Pass in the entire tokens array so that we can loop through all items
-static page_content_t **parser_get_page_content(const char *data, jsmntok_t token) {
+static page_content_t **parser_get_page_contents(const char *data, jsmntok_t token) {
     /* char *content_string; */
     page_content_t **content = calloc(token.size, sizeof(page_content_t *));
 
@@ -146,14 +149,14 @@ static page_t *parse_page(const char *data, jsmntok_t obj, jsmntok_t *tokens, si
         } else if (strcmp(key, "title") == 0) {
             page->title = parser_get_unicode_string(data, next_token);
         } else if (strcmp(key, "content") == 0) {
-            page->content = parser_get_page_content(data, next_token);
+            page->content = parser_get_page_contents(data, next_token);
             page->content_size = next_token.size;
             i += next_token.size;
         }
 
         free(key);
         iterations++;
-        i++;
+        i += 2;
     }
 
     *obj_token_index = i;
