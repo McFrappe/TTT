@@ -31,6 +31,9 @@ test: unittests
 
 memtest: unittests
 	valgrind $(VALGRIND_FLAGS) ./$(TEST_OUT_PATH)
+	
+CI-memtest: unittests
+	valgrind $(VALGRIND_FLAGS) --error-exitcode=1 ./$(TEST_OUT_PATH)
 
 prebuild:
 	mkdir -p $(DIST_DIR)
