@@ -9,7 +9,10 @@ TEST_FILES:=test/unittests.c $(OBJ_FILES)
 DIST_DIR=build
 TTT_OUT_PATH=$(DIST_DIR)/ttt.out
 TEST_OUT_PATH=$(DIST_DIR)/tests.out
-VALGRIND_FLAGS=--leak-check=full --show-leak-kinds=all --suppressions=static/valgrind.supp
+VALGRIND_FLAGS=--leak-check=full \
+	       --show-leak-kinds=all \
+	       --suppressions=static/valgrind.supp \
+	       --error-exitcode=1
 
 %.o: %.c
 	$(CC) $(CFLAGS) $(CFLAGS_LIB) $(LIBS) $^ -o $@
@@ -31,9 +34,6 @@ test: unittests
 
 memtest: unittests
 	valgrind $(VALGRIND_FLAGS) ./$(TEST_OUT_PATH)
-	
-CI-memtest: unittests
-	valgrind $(VALGRIND_FLAGS) --error-exitcode=1 ./$(TEST_OUT_PATH)
 
 prebuild:
 	mkdir -p $(DIST_DIR)
