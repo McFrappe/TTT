@@ -35,7 +35,7 @@ bool load_test_data(json_t *dest, const char *path) {
     fclose(f);
 
     return true;
-}
+}\
 
 void destroy_test_data(json_t *json) {
     free(json->data);
@@ -58,7 +58,7 @@ void assert_parsed_page(
     uint16_t next_id,
     uint64_t unix_date,
     const char *title,
-    size_t content_size
+    page_content_t *content
 ) {
     CU_ASSERT_PTR_NOT_NULL_FATAL(page);
 
@@ -72,18 +72,16 @@ void assert_parsed_page(
     CU_ASSERT_EQUAL(page->unix_date, unix_date);
 
     if (!title || !page->title) {
-        CU_ASSERT_EQUAL(page->title, title);
+        CU_ASSERT_PTR_EQUAL(page->title, title);
     } else {
         CU_ASSERT_STRING_EQUAL(page->title, title);
     }
 
-    CU_ASSERT_EQUAL(page->content_size, content_size);
-
-    if (page->content_size == 0) {
+    if (!content) {
         CU_ASSERT_PTR_NULL(page->content);
     } else {
         CU_ASSERT_PTR_NOT_NULL(page->content);
-        // TODO: Validate content
+        // TODO: Compare content
     }
 }
 
@@ -104,7 +102,7 @@ void test_page_object_without_array() {
 }
 
 void test_page_empty_title() {
-    const char *str = "[{\"title\": \"\"}]";
+    char *str = "[{\"title\": \"\"}]";
     page_collection_t *collection = parser_get_page_collection(str, strlen(str));
 
     assert_page_collection(collection, 1);
@@ -115,15 +113,34 @@ void test_page_empty_title() {
         0,
         0,
         0,
-        "",
-        0
+        NULL,
+        NULL
+    );
+
+    page_collection_destroy(collection);
+}
+
+void test_page_single_char_title() {
+    char *str = "[{\"title\": \"x\"}]";
+    page_collection_t *collection = parser_get_page_collection(str, strlen(str));
+
+    assert_page_collection(collection, 1);
+
+    assert_parsed_page(
+        collection->pages[0],
+        0,
+        0,
+        0,
+        0,
+        "x",
+        NULL
     );
 
     page_collection_destroy(collection);
 }
 
 void test_page_title_unescaped() {
-    const char *str = "[{\"title\": \"abc-\u00e4\u00e5\u00c4\u00c5\u00f6\u00d6-def\"}]";
+    char *str = "[{\"title\": \"abc-\\u00e4\\u00e5\\u00c4\\u00c5\\u00f6\\u00d6-def\"}]";
     page_collection_t *collection = parser_get_page_collection(str, strlen(str));
 
     assert_page_collection(collection, 1);
@@ -135,7 +152,7 @@ void test_page_title_unescaped() {
         0,
         0,
         "abc-aaAAoO-def",
-        0
+        NULL
     );
 
     page_collection_destroy(collection);
@@ -143,7 +160,7 @@ void test_page_title_unescaped() {
 
 void test_page_title_unescaped_invalid_sequence() {
     // Only sequences starting with \u should be unescaped
-    const char *str = "[{\"title\": \"abc-\x00e4\x00e5\x00c4\x00c5\x00f6\x00d6-def\"}]";
+    char *str = "[{\"title\": \"abc-\\x00e4\\x00e5\\x00c4\\x00c5\\x00f6\\x00d6-def\"}]";
     page_collection_t *collection = parser_get_page_collection(str, strlen(str));
 
     assert_page_collection(collection, 1);
@@ -154,15 +171,15 @@ void test_page_title_unescaped_invalid_sequence() {
         0,
         0,
         0,
-        "abc-\x00e4\x00e5\x00c4\x00c5\x00f6\x00d6-def",
-        0
+        "abc-\\x00e4\\x00e5\\x00c4\\x00c5\\x00f6\\x00d6-def",
+        NULL
     );
 
     page_collection_destroy(collection);
 }
 
 void test_page_invalid_keys() {
-    const char *str = "[{\"invalid\": \"asd\", \"xxx\": 100, \"yyy\": [\"zzz\"]}]";
+    char *str = "[{\"invalid\": \"asd\", \"xxx\": 100, \"yyy\": [\"zzz\"]}]";
     page_collection_t *collection = parser_get_page_collection(str, strlen(str));
 
     assert_page_collection(collection, 1);
@@ -174,14 +191,14 @@ void test_page_invalid_keys() {
         0,
         0,
         NULL,
-        0
+        NULL
     );
 
     page_collection_destroy(collection);
 }
 
 void test_page_large_content_array() {
-    const char *str = "[{\"content\": [\"xxx\", \"yyy\", \"zzz\"]}]";
+    char *str = "[{\"content\": [\"xxx\", \"yyy\", \"zzz\"]}]";
     page_collection_t *collection = parser_get_page_collection(str, strlen(str));
 
     assert_page_collection(collection, 1);
@@ -192,7 +209,7 @@ void test_page_large_content_array() {
         0,
         0,
         NULL,
-        3
+        NULL
     );
 
     page_collection_destroy(collection);
@@ -212,7 +229,7 @@ void test_page_single() {
         201,
         1612004371,
         "Svt",
-        1
+        NULL
     );
 
     page_collection_destroy(collection);
@@ -233,7 +250,7 @@ void test_page_range() {
         101,
         1612004855,
         "USA infor munskyddskrav for resande | Svensk test av virusmutationer drojer | Inrikes",
-        1
+        NULL
     );
 
     assert_parsed_page(
@@ -243,7 +260,7 @@ void test_page_range() {
         102,
         1612004794,
         "SVT Text",
-        1
+        NULL
     );
 
     assert_parsed_page(
@@ -253,7 +270,7 @@ void test_page_range() {
         103,
         1612007994,
         "SVT Text",
-        1
+        NULL
     );
 
     assert_parsed_page(
@@ -263,7 +280,7 @@ void test_page_range() {
         104,
         1612007994,
         "SVT Text",
-        1
+        NULL
     );
 
     assert_parsed_page(
@@ -273,7 +290,7 @@ void test_page_range() {
         105,
         1612004496,
         "SVT Text",
-        1
+        NULL
     );
 
     page_collection_destroy(collection);
@@ -294,6 +311,7 @@ int main() {
     CU_add_test(page_parser_suite, "test_page_empty_string", test_page_empty_string);
     CU_add_test(page_parser_suite, "test_page_empty_array", test_page_empty_array);
     CU_add_test(page_parser_suite, "test_page_empty_title", test_page_empty_title);
+    CU_add_test(page_parser_suite, "test_page_single_char_title", test_page_single_char_title);
     CU_add_test(page_parser_suite, "test_page_invalid_keys", test_page_invalid_keys);
     CU_add_test(page_parser_suite, "test_page_object_without_array", test_page_object_without_array);
     CU_add_test(page_parser_suite, "test_page_title_unescaped", test_page_title_unescaped);

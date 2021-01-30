@@ -24,8 +24,7 @@ struct page {
     uint16_t id, prev_id, next_id;
     uint64_t unix_date;
     char *title;
-    size_t content_size;
-    page_content_t **content;
+    page_content_t *content;
 };
 
 struct page_collection {
@@ -34,5 +33,6 @@ struct page_collection {
 };
 
 void page_destroy(page_t *page);
-void page_collection_print(page_collection_t *collection, const char *name);
+void page_content_destroy(page_content_t *content);
 void page_collection_destroy(page_collection_t *collection);
+void page_collection_print(page_collection_t *collection, const char *name);

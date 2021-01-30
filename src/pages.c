@@ -8,35 +8,23 @@ void page_collection_print(page_collection_t *collection, const char *name) {
         printf("* next_id: %d\n", collection->pages[i]->next_id);
         printf("* unix_date: %lu\n", collection->pages[i]->unix_date);
         printf("* title: %s\n", collection->pages[i]->title);
-        printf("* content_size: %zd\n", collection->pages[i]->content_size);
         // TODO: Print parsed content
         printf("\n");
     }
 }
 
-// Internal destroy function for content that is in a page_t struct
-static void page_content_destroy(page_content_t **content, size_t content_size) {
+void page_content_destroy(page_content_t *content) {
     if (!content) {
         return;
     }
 
-    for (size_t i = 0; i < content_size; i++) {
-        page_content_t *current = content[i];
-
-        if (!current) {
-            continue;
-        }
-
-        free(current->title);
-        free(current->text);
-        free(current);
-    }
-
+    free(content->title);
+    free(content->text);
     free(content);
 }
 
 void page_destroy(page_t *page) {
-    page_content_destroy(page->content, page->content_size);
+    page_content_destroy(page->content);
     free(page->title);
     free(page);
 }

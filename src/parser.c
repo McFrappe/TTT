@@ -1,15 +1,31 @@
 #include "parser.h"
+
+#define JSMN_PARENT_LINKS
 #include "../lib/jsmn.h"
 
 #define TOKENS_SIZE 256
 #define ESCAPED_CHAR_SEQUENCE_LENGTH 5
 
-static size_t calculate_token_length(jsmntok_t token) {
-    return token.end - token.start;
+static size_t calculate_token_length(jsmntok_t *cursor) {
+    if (!cursor) {
+        return 0;
+    }
+
+    return cursor->end - cursor->start;
 }
 
-static char *parser_get_unicode_string(const char *data, jsmntok_t token) {
-    size_t length = calculate_token_length(token);
+/// @brief Moves a pointer to a token forward n steps
+static void move_forward(jsmntok_t *cursor, size_t steps) {
+    // TODO: Add test case for this
+    // TODO: Do this recursively to make sure that we are actually at the end of the array
+    //       For example, if we have an object inside the array, we must move more than 'size' steps
+    for (size_t i = 0; i < steps; i++) {
+        cursor++;
+    }
+}
+
+static char *get_unicode_string(const char *data, jsmntok_t *cursor) {
+    size_t length = calculate_token_length(cursor);
 
     if (!data || length == 0) {
         return NULL;
@@ -19,11 +35,11 @@ static char *parser_get_unicode_string(const char *data, jsmntok_t token) {
     char sequence_buf[ESCAPED_CHAR_SEQUENCE_LENGTH];
     size_t buf_position = 0;
 
-    for (size_t i = token.start; i < token.start + length; i++, buf_position++) {
+    for (size_t i = cursor->start; i < cursor->start + length; i++, buf_position++) {
         // Only search for escape sequences with the format \uXXXX
         if (
             data[i] == '\\' &&
-            (i + ESCAPED_CHAR_SEQUENCE_LENGTH) <= length &&
+            (i + ESCAPED_CHAR_SEQUENCE_LENGTH) <= cursor->start + length &&
             data[i + 1] == 'u'
         ) {
             for (size_t j = 0; j < ESCAPED_CHAR_SEQUENCE_LENGTH; j++) {
@@ -46,8 +62,6 @@ static char *parser_get_unicode_string(const char *data, jsmntok_t token) {
                 buf[buf_position] = 'o';
             } else if (strncmp(sequence_buf, "u00d6", ESCAPED_CHAR_SEQUENCE_LENGTH) == 0) {
                 buf[buf_position] = 'O';
-            } else {
-                printf("Found unhandled unicode escape sequence: %s\n", sequence_buf);
             }
         } else {
             buf[buf_position] = data[i];
@@ -62,8 +76,8 @@ static char *parser_get_unicode_string(const char *data, jsmntok_t token) {
     return escaped;
 }
 
-static char *parser_get_string(const char *data, jsmntok_t token) {
-    size_t length = calculate_token_length(token);
+static char *get_string(const char *data, jsmntok_t *cursor) {
+    size_t length = calculate_token_length(cursor);
 
     if (!data || length == 0) {
         return NULL;
@@ -71,7 +85,7 @@ static char *parser_get_string(const char *data, jsmntok_t token) {
 
     char *str = calloc(length + 1, sizeof(char));
     str[length] = '\0';
-    strncpy(str, data + token.start, length);
+    strncpy(str, data + cursor->start, length);
     return str;
 }
 
@@ -80,8 +94,8 @@ static char *parser_get_string(const char *data, jsmntok_t token) {
 /// @param token the token to parse as a numeric value
 /// @param max_value the max value for the numeric type
 /// @return the numeric value or -1 if parsing failed or value is greater than max_value
-static size_t parser_get_unsigned_numeric(const char *data, jsmntok_t token, size_t max_value) {
-    char *value = parser_get_string(data, token);
+static size_t get_unsigned_numeric(const char *data, jsmntok_t *cursor, size_t max_value) {
+    char *value = get_string(data, cursor);
 
     if (!value) {
         return -1;
@@ -109,57 +123,69 @@ static size_t parser_get_unsigned_numeric(const char *data, jsmntok_t token, siz
 }
 
 page_content_t *parser_get_page_content(const char *content, size_t size) {
-    printf("Content data: %s\n", content);
+    if (!content || size == 0) {
+        return NULL;
+    }
+
     return NULL;
 }
 
-// TODO: Pass in the entire tokens array so that we can loop through all items
-static page_content_t **parser_get_page_contents(const char *data, jsmntok_t token) {
-    /* char *content_string; */
-    page_content_t **content = calloc(token.size, sizeof(page_content_t *));
+static page_content_t *get_content(const char *data, jsmntok_t *cursor) {
+    // Go to the array token
+    cursor++;
 
-    for (size_t i = 0; i < token.size; i++) {
-        /* content_string = parser_get_string(data, token) */
+    if (cursor->type != JSMN_ARRAY) {
+        return NULL;
     }
 
+    size_t array_size = cursor->size;
+
+    if (array_size == 0) {
+        return NULL;
+    }
+
+    // Go to the first array element
+    cursor++;
+    char *content_string = get_string(data, cursor);
+    page_content_t *content = parser_get_page_content(
+        content_string,
+        calculate_token_length(cursor)
+    );
+
+
+    move_forward(cursor, array_size - 1);
+    free(content_string);
     return content;
 }
 
-static page_t *parse_page(const char *data, jsmntok_t obj, jsmntok_t *tokens, size_t *obj_token_index) {
-    jsmntok_t cursor;
-    jsmntok_t next_token;
+static page_t *get_page(const char *data, jsmntok_t *cursor) {
     page_t *page = calloc(1, sizeof(page_t));
-    size_t iterations = 0;
-    size_t i = *obj_token_index + 1;
     char *key = NULL;
+    size_t keys = cursor->size;
 
-    while (iterations < obj.size) {
-        cursor = tokens[i];
-        next_token = tokens[i + 1];
-        key = parser_get_string(data, cursor);
+    for (size_t i = 0; i < keys; i++) {
+        cursor++;
+        key = get_string(data, cursor);
+        cursor++;
+
 
         if (strcmp(key, "num") == 0) {
-            page->id = parser_get_unsigned_numeric(data, next_token, UINT16_MAX);
+            page->id = get_unsigned_numeric(data, cursor, UINT16_MAX);
         } else if (strcmp(key, "prev_page") == 0) {
-            page->prev_id = parser_get_unsigned_numeric(data, next_token, UINT16_MAX);
+            page->prev_id = get_unsigned_numeric(data, cursor, UINT16_MAX);
         } else if (strcmp(key, "next_page") == 0) {
-            page->prev_id = parser_get_unsigned_numeric(data, next_token, UINT16_MAX);
+            page->prev_id = get_unsigned_numeric(data, cursor, UINT16_MAX);
         } else if (strcmp(key, "date_updated_unix") == 0) {
-            page->unix_date = parser_get_unsigned_numeric(data, next_token, SIZE_MAX);
+            page->unix_date = get_unsigned_numeric(data, cursor, SIZE_MAX);
         } else if (strcmp(key, "title") == 0) {
-            page->title = parser_get_unicode_string(data, next_token);
+            page->title = get_unicode_string(data, cursor);
         } else if (strcmp(key, "content") == 0) {
-            page->content = parser_get_page_contents(data, next_token);
-            page->content_size = next_token.size;
-            i += next_token.size;
+            page->content = get_content(data, cursor);
         }
 
         free(key);
-        iterations++;
-        i += 2;
     }
 
-    *obj_token_index = i;
     return page;
 }
 
@@ -173,30 +199,26 @@ page_collection_t *parser_get_page_collection(const char *data, size_t size) {
     jsmntok_t tokens[TOKENS_SIZE];
     size_t keys = jsmn_parse(&parser, data, size, tokens, sizeof(tokens) / sizeof(tokens[0]));
 
-    if (keys < 0) {
-        printf("Failed to parse response body: %ld\n", keys);
-        return NULL;
-    }
-
-    if (keys < 1 || tokens[0].type != JSMN_ARRAY) {
-        printf("Parser expected array at top level!\n");
+    if (keys < 3 || tokens[0].type != JSMN_ARRAY || tokens[1].type != JSMN_OBJECT) {
         return NULL;
     }
 
     size_t parsed_objects = 0;
-    jsmntok_t array = tokens[0];
-    page_t **pages = calloc(array.size, sizeof(page_t *));
+    jsmntok_t *cursor = tokens;
+    page_t **pages = calloc(cursor->size, sizeof(page_t *));
 
-    for (size_t i = 1; i < keys; i++) {
-        jsmntok_t token = tokens[i];
+    for (size_t i = 0; i < cursor->size; i++) {
+        cursor++;
 
-        if (token.type == JSMN_OBJECT) {
-            page_t *page = parse_page(data, token, tokens, &i);
+        if (cursor->type == JSMN_OBJECT) {
+            page_t *page = get_page(data, cursor);
 
             if (page) {
                 pages[parsed_objects] = page;
                 parsed_objects++;
             }
+        } else if (cursor->type == JSMN_ARRAY) {
+            move_forward(cursor, cursor->size);
         }
     }
 
