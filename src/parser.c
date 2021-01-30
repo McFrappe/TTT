@@ -26,7 +26,7 @@ static char *parser_get_unicode_string(const char *data, jsmntok_t token) {
             (i + ESCAPED_CHAR_SEQUENCE_LENGTH) <= length &&
             data[i + 1] == 'u'
         ) {
-            for (size_t j = 0; j < ESCAPED_CHAR_SEQUENCE_LENGTH; j++ ) {
+            for (size_t j = 0; j < ESCAPED_CHAR_SEQUENCE_LENGTH; j++) {
                 sequence_buf[j] = data[i + j + 1];
             }
 
