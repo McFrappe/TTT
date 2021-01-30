@@ -15,12 +15,12 @@ static size_t calculate_token_length(jsmntok_t *cursor) {
 }
 
 /// @brief Moves a pointer to a token forward n steps
-static void move_forward(jsmntok_t *cursor, size_t steps) {
+static void move_forward(jsmntok_t **cursor, size_t steps) {
     // TODO: Add test case for this
     // TODO: Do this recursively to make sure that we are actually at the end of the array
     //       For example, if we have an object inside the array, we must move more than 'size' steps
     for (size_t i = 0; i < steps; i++) {
-        cursor++;
+        *cursor += 1;
     }
 }
 
@@ -130,57 +130,55 @@ page_content_t *parser_get_page_content(const char *content, size_t size) {
     return NULL;
 }
 
-static page_content_t *get_content(const char *data, jsmntok_t *cursor) {
+static page_content_t *parse_page_content(const char *data, jsmntok_t **cursor) {
     // Go to the array token
-    cursor++;
+    *cursor += 1;
 
-    if (cursor->type != JSMN_ARRAY) {
+    if ((*cursor)->type != JSMN_ARRAY) {
         return NULL;
     }
 
-    size_t array_size = cursor->size;
+    size_t array_size = (*cursor)->size;
 
     if (array_size == 0) {
         return NULL;
     }
 
     // Go to the first array element
-    cursor++;
-    char *content_string = get_string(data, cursor);
+    *cursor += 1;
+    char *content_string = get_string(data, *cursor);
     page_content_t *content = parser_get_page_content(
         content_string,
-        calculate_token_length(cursor)
+        calculate_token_length(*cursor)
     );
-
 
     move_forward(cursor, array_size - 1);
     free(content_string);
     return content;
 }
 
-static page_t *get_page(const char *data, jsmntok_t *cursor) {
+static page_t *get_page(const char *data, jsmntok_t **cursor) {
     page_t *page = calloc(1, sizeof(page_t));
     char *key = NULL;
-    size_t keys = cursor->size;
+    size_t keys = (*cursor)->size;
 
     for (size_t i = 0; i < keys; i++) {
-        cursor++;
-        key = get_string(data, cursor);
-        cursor++;
-
+        *cursor += 1;
+        key = get_string(data, *cursor);
+        *cursor += 1;
 
         if (strcmp(key, "num") == 0) {
-            page->id = get_unsigned_numeric(data, cursor, UINT16_MAX);
+            page->id = get_unsigned_numeric(data, *cursor, UINT16_MAX);
         } else if (strcmp(key, "prev_page") == 0) {
-            page->prev_id = get_unsigned_numeric(data, cursor, UINT16_MAX);
+            page->prev_id = get_unsigned_numeric(data, *cursor, UINT16_MAX);
         } else if (strcmp(key, "next_page") == 0) {
-            page->prev_id = get_unsigned_numeric(data, cursor, UINT16_MAX);
+            page->prev_id = get_unsigned_numeric(data, *cursor, UINT16_MAX);
         } else if (strcmp(key, "date_updated_unix") == 0) {
-            page->unix_date = get_unsigned_numeric(data, cursor, SIZE_MAX);
+            page->unix_date = get_unsigned_numeric(data, *cursor, SIZE_MAX);
         } else if (strcmp(key, "title") == 0) {
-            page->title = get_unicode_string(data, cursor);
+            page->title = get_unicode_string(data, *cursor);
         } else if (strcmp(key, "content") == 0) {
-            page->content = get_content(data, cursor);
+            page->content = parse_page_content(data, cursor);
         }
 
         free(key);
@@ -203,22 +201,21 @@ page_collection_t *parser_get_page_collection(const char *data, size_t size) {
         return NULL;
     }
 
-    size_t parsed_objects = 0;
     jsmntok_t *cursor = tokens;
-    page_t **pages = calloc(cursor->size, sizeof(page_t *));
+    size_t array_size = cursor->size;
+    page_t **pages = calloc(array_size, sizeof(page_t *));
+    size_t parsed_objects = 0;
 
-    for (size_t i = 0; i < cursor->size; i++) {
+    for (size_t i = 0; i < array_size; i++) {
         cursor++;
 
         if (cursor->type == JSMN_OBJECT) {
-            page_t *page = get_page(data, cursor);
+            page_t *page = get_page(data, &cursor);
 
             if (page) {
                 pages[parsed_objects] = page;
                 parsed_objects++;
             }
-        } else if (cursor->type == JSMN_ARRAY) {
-            move_forward(cursor, cursor->size);
         }
     }
 
