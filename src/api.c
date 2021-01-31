@@ -94,7 +94,7 @@ static page_collection_t *make_request(uint16_t start, uint16_t end) {
         return NULL;
     }
 
-    //printf("Response body: %s\n", chunk.data);
+    /* printf("Response body: %s\n", chunk.data); */
     page_collection_t *collection = parser_get_page_collection(chunk.data, chunk.size);
     free(chunk.data);
 

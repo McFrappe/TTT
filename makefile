@@ -1,26 +1,35 @@
 CC=gcc
 CFLAGS=-Wall -pedantic -g
 CFLAGS_LIB=-c
-LIBS:=-lcurl -lncurses
-TEST_LIBS:=-lcunit $(LIBS)
-OBJ_FILES:=src/ui.o src/api.o src/parser.o src/pages.o
+
+LIBS=-lcurl -lncurses
+TEST_LIBS=-lcunit
+
+BASE_OBJ_FILES:=src/parser.o src/pages.o
+OBJ_FILES:=src/ui.o src/api.o $(BASE_OBJ_FILES)
 MAIN_FILES:=src/main.c $(OBJ_FILES)
-TEST_FILES:=test/unittests.c $(OBJ_FILES)
+TEST_FILES:=test/unittests.c $(BASE_OBJ_FILES)
+
 DIST_DIR=build
 TTT_OUT_PATH=$(DIST_DIR)/ttt.out
 TEST_OUT_PATH=$(DIST_DIR)/tests.out
-VALGRIND_FLAGS=--leak-check=full --show-leak-kinds=all --suppressions=static/valgrind.supp
+
+VALGRIND_FLAGS=--leak-check=full \
+	       --show-leak-kinds=all \
+	       --suppressions=static/valgrind.supp \
+	       --error-exitcode=1 \
+	       --track-origins=yes
 
 %.o: %.c
 	$(CC) $(CFLAGS) $(CFLAGS_LIB) $(LIBS) $^ -o $@
 
-main: src/main.c $(OBJ_FILES)
-	$(CC) $(CFLAGS) $(LIBS) $(MAIN_FILES) -o $(TTT_OUT_PATH)
+main: prebuild $(MAIN_FILES)
+	$(CC) $(CFLAGS) $(MAIN_FILES) -o $(TTT_OUT_PATH) $(LIBS)
 
-unittests: prebuild test/unittests.c $(OBJ_FILES)
-	$(CC) $(CFLAGS) $(TEST_LIBS) $(TEST_FILES) -o $(TEST_OUT_PATH)
+unittests: prebuild $(TEST_FILES)
+	$(CC) $(CFLAGS) $(TEST_FILES) -o $(TEST_OUT_PATH) $(TEST_LIBS)
 
-run: prebuild main
+run: main
 	./$(TTT_OUT_PATH)
 
 memrun: main
@@ -31,9 +40,6 @@ test: unittests
 
 memtest: unittests
 	valgrind $(VALGRIND_FLAGS) ./$(TEST_OUT_PATH)
-	
-CI-memtest: unittests
-	valgrind $(VALGRIND_FLAGS) --error-exitcode=1 ./$(TEST_OUT_PATH)
 
 prebuild:
 	mkdir -p $(DIST_DIR)

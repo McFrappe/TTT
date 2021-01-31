@@ -1,0 +1,30 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Tests
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+    - 'src/**'
+    - 'test/**'
+    - 'makefile'
+  pull_request:
+    branches: [ main ]
+    paths:
+    - 'src/**'
+    - 'test/**'
+    - 'makefile'
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install dependencies
+      run: |
+            sudo apt-get update
+            sudo apt-get install valgrind libcunit1 libcunit1-dev
+    - name: Run tests with valgrind
+      run: make memtest
