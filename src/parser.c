@@ -6,21 +6,25 @@
 #define TOKENS_SIZE 256
 #define ESCAPED_CHAR_SEQUENCE_LENGTH 5
 
+static void next_token(jsmntok_t **cursor) {
+    *cursor += 1;
+}
+
+/// @brief Moves a pointer to a token forward n steps
+static void next_n_token(jsmntok_t **cursor, size_t n) {
+    // TODO: Do this recursively to make sure that we are actually at the end of the array
+    //       For example, if we have an object inside the array, we must move more than 'size' steps
+    for (size_t i = 0; i < n; i++) {
+        next_token(cursor);
+    }
+}
+
 static size_t calculate_token_length(jsmntok_t *cursor) {
     if (!cursor) {
         return 0;
     }
 
     return cursor->end - cursor->start;
-}
-
-/// @brief Moves a pointer to a token forward n steps
-static void move_forward(jsmntok_t **cursor, size_t steps) {
-    // TODO: Do this recursively to make sure that we are actually at the end of the array
-    //       For example, if we have an object inside the array, we must move more than 'size' steps
-    for (size_t i = 0; i < steps; i++) {
-        *cursor += 1;
-    }
 }
 
 static char *get_unicode_string(const char *data, jsmntok_t *cursor) {
@@ -143,13 +147,13 @@ static page_content_t *parse_page_content(const char *data, jsmntok_t **cursor) 
     }
 
     // Go to the first array element
-    *cursor += 1;
+    next_token(cursor);
     char *content_string = get_string(data, *cursor);
     page_content_t *content = parser_get_page_content(
                                   content_string,
                                   calculate_token_length(*cursor)
                               );
-    move_forward(cursor, array_size - 1);
+    next_n_token(cursor, array_size - 1);
     free(content_string);
     return content;
 }
@@ -160,9 +164,9 @@ static page_t *get_page(const char *data, jsmntok_t **cursor) {
     size_t keys = (*cursor)->size;
 
     for (size_t i = 0; i < keys; i++) {
-        *cursor += 1;
+        next_token(cursor);
         key = get_string(data, *cursor);
-        *cursor += 1;
+        next_token(cursor);
 
         if (strcmp(key, "num") == 0) {
             page->id = get_unsigned_numeric(data, *cursor, UINT16_MAX);
