@@ -128,10 +128,10 @@ void test_page_empty_title() {
 
     assert_parsed_page(
         collection->pages[0],
-        0,
-        0,
-        0,
-        0,
+        -1,
+        -1,
+        -1,
+        -1,
         NULL,
         NULL
     );
@@ -147,10 +147,10 @@ void test_page_single_char_title() {
 
     assert_parsed_page(
         collection->pages[0],
-        0,
-        0,
-        0,
-        0,
+        -1,
+        -1,
+        -1,
+        -1,
         "x",
         NULL
     );
@@ -166,10 +166,10 @@ void test_page_title_unescaped() {
 
     assert_parsed_page(
         collection->pages[0],
-        0,
-        0,
-        0,
-        0,
+        -1,
+        -1,
+        -1,
+        -1,
         "abc-aaAAoO-def",
         NULL
     );
@@ -185,10 +185,10 @@ void test_page_invalid_keys() {
 
     assert_parsed_page(
         collection->pages[0],
-        0,
-        0,
-        0,
-        0,
+        -1,
+        -1,
+        -1,
+        -1,
         NULL,
         NULL
     );
@@ -203,10 +203,10 @@ void test_page_large_content_array() {
     assert_page_collection(collection, 1);
     assert_parsed_page(
         collection->pages[0],
-        0,
-        0,
-        0,
-        0,
+        -1,
+        -1,
+        -1,
+        -1,
         NULL,
         NULL
     );
@@ -224,6 +224,47 @@ void test_page_invalid() {
     assert_page_collection(collection, 1);
     assert_parsed_page(
         collection->pages[0],
+        -1,
+        -1,
+        -1,
+        -1,
+        NULL,
+        NULL
+    );
+
+    page_collection_destroy(collection);
+}
+
+void test_page_collection_resize() {
+    // The parser will read this as 6 possible pages, however 3 are strings
+    // and therefore will not be parsed as a page. This means that we should
+    // get a page collection of only 3 pages when parsed.
+    char *str = "[{}, {}, {}, \"xxx\", \"yyy\", \"zzz\"]";
+    page_collection_t *collection = parser_get_page_collection(str, strlen(str));
+
+    assert_page_collection(collection, 3);
+    assert_parsed_page(
+        collection->pages[0],
+        -1,
+        -1,
+        -1,
+        -1,
+        NULL,
+        NULL
+    );
+
+    assert_parsed_page(
+        collection->pages[1],
+        -1,
+        -1,
+        -1,
+        -1,
+        NULL,
+        NULL
+    );
+
+    assert_parsed_page(
+        collection->pages[2],
         -1,
         -1,
         -1,
@@ -408,6 +449,7 @@ int main() {
     CU_add_test(page_parser_suite, "test_page_object_without_array", test_page_object_without_array);
     CU_add_test(page_parser_suite, "test_page_title_unescaped", test_page_title_unescaped);
     CU_add_test(page_parser_suite, "test_page_invalid", test_page_invalid);
+    CU_add_test(page_parser_suite, "test_page_collection_resize", test_page_collection_resize);
     CU_add_test(page_parser_suite, "test_page_large_content_array", test_page_large_content_array);
     CU_add_test(page_parser_suite, "test_page_single", test_page_single);
     CU_add_test(page_parser_suite, "test_page_range", test_page_range);

@@ -170,7 +170,7 @@ static page_content_t *parse_page_content(const char *data, jsmntok_t **cursor) 
 }
 
 static page_t *get_page(const char *data, jsmntok_t **cursor) {
-    page_t *page = calloc(1, sizeof(page_t));
+    page_t *page = page_create_empty();
     char *key = NULL;
     size_t keys = (*cursor)->size;
 
@@ -214,25 +214,26 @@ page_collection_t *parser_get_page_collection(const char *data, size_t size) {
     }
 
     jsmntok_t *cursor = tokens;
-    size_t array_size = cursor->size;
-    page_t **pages = calloc(array_size, sizeof(page_t *));
     size_t parsed_objects = 0;
+    size_t array_size = cursor->size;
+    page_collection_t *collection = page_collection_create(array_size);
 
     for (size_t i = 0; i < array_size; i++) {
-        cursor++;
+        next_token(&cursor);
 
         if (cursor->type == JSMN_OBJECT) {
             page_t *page = get_page(data, &cursor);
 
             if (page) {
-                pages[parsed_objects] = page;
+                collection->pages[parsed_objects] = page;
                 parsed_objects++;
             }
         }
     }
 
-    page_collection_t *collection = calloc(1, sizeof(page_collection_t));
-    collection->pages = pages;
-    collection->size = parsed_objects;
+    if (array_size > parsed_objects) {
+        page_collection_resize(collection, parsed_objects);
+    }
+
     return collection;
 }
