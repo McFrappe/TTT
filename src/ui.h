@@ -1,4 +1,5 @@
 #pragma once
 #include <curses.h>
 
-void initialize_ui();
+void ui_initialize();
+void ui_destroy();

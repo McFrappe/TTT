@@ -168,3 +168,468 @@
    obj:/usr/lib64/libcurl.so.4.5.0
    fun:api_initialize
 }
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:_nc_setupscreen
+   fun:newterm
+   fun:initscr
+   fun:ui_initialize
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:strdup
+   fun:_nc_setupterm
+   fun:newterm
+   fun:initscr
+   fun:ui_initialize
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:_nc_tparm_analyze
+   fun:tparm
+   fun:_nc_mvcur_init
+   fun:newterm
+   fun:initscr
+   fun:ui_initialize
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:CRYPTO_malloc
+   obj:/usr/lib64/libcrypto.so.1.0.2k
+   obj:/usr/lib64/libcrypto.so.1.0.2k
+   fun:BIO_set
+   fun:BIO_new
+   fun:BIO_new_file
+   obj:/usr/lib64/libcrypto.so.1.0.2k
+   fun:CONF_modules_load_file
+   obj:/usr/lib64/libcurl.so.4.5.0
+   obj:/usr/lib64/libcurl.so.4.5.0
+   fun:api_initialize
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:CRYPTO_malloc
+   fun:lh_insert
+   obj:/usr/lib64/libcrypto.so.1.0.2k
+   obj:/usr/lib64/libcrypto.so.1.0.2k
+   fun:BIO_set
+   fun:BIO_new
+   fun:BIO_new_file
+   obj:/usr/lib64/libcrypto.so.1.0.2k
+   fun:CONF_modules_load_file
+   obj:/usr/lib64/libcurl.so.4.5.0
+   obj:/usr/lib64/libcurl.so.4.5.0
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:_nc_home_terminfo
+   fun:_nc_next_db
+   fun:_nc_read_entry
+   obj:/lib64/libtinfo.so.5.7
+   fun:_nc_setupterm
+   fun:newterm
+   fun:initscr
+   fun:ui_initialize
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:CRYPTO_malloc
+   fun:sk_new
+   obj:/usr/lib64/libcrypto.so.1.0.2k
+   obj:/usr/lib64/libcrypto.so.1.0.2k
+   fun:BIO_set
+   fun:BIO_new
+   fun:BIO_new_file
+   obj:/usr/lib64/libcrypto.so.1.0.2k
+   fun:CONF_modules_load_file
+   obj:/usr/lib64/libcurl.so.4.5.0
+   obj:/usr/lib64/libcurl.so.4.5.0
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:CRYPTO_malloc
+   fun:sk_new
+   obj:/usr/lib64/libcrypto.so.1.0.2k
+   obj:/usr/lib64/libcrypto.so.1.0.2k
+   fun:BIO_set
+   fun:BIO_new
+   fun:BIO_new_file
+   obj:/usr/lib64/libcrypto.so.1.0.2k
+   fun:CONF_modules_load_file
+   obj:/usr/lib64/libcurl.so.4.5.0
+   obj:/usr/lib64/libcurl.so.4.5.0
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:realloc
+   fun:_nc_doalloc
+   fun:_nc_read_termtype
+   fun:_nc_read_file_entry
+   fun:_nc_read_entry
+   obj:/lib64/libtinfo.so.5.7
+   fun:_nc_setupterm
+   fun:newterm
+   fun:initscr
+   fun:ui_initialize
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:realloc
+   fun:_nc_doalloc
+   fun:tparm
+   fun:_nc_mvcur_init
+   fun:newterm
+   fun:initscr
+   fun:ui_initialize
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:realloc
+   fun:_nc_doalloc
+   fun:_nc_read_termtype
+   fun:_nc_read_file_entry
+   fun:_nc_read_entry
+   obj:/lib64/libtinfo.so.5.7
+   fun:_nc_setupterm
+   fun:newterm
+   fun:initscr
+   fun:ui_initialize
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:_nc_makenew
+   fun:newwin
+   fun:_nc_setupscreen
+   fun:newterm
+   fun:initscr
+   fun:ui_initialize
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:_nc_makenew
+   fun:newwin
+   fun:_nc_setupscreen
+   fun:newterm
+   fun:initscr
+   fun:ui_initialize
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:_nc_setupscreen
+   fun:newterm
+   fun:initscr
+   fun:ui_initialize
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:CRYPTO_malloc
+   fun:lh_new
+   obj:/usr/lib64/libcrypto.so.1.0.2k
+   obj:/usr/lib64/libcrypto.so.1.0.2k
+   obj:/usr/lib64/libcrypto.so.1.0.2k
+   fun:BIO_set
+   fun:BIO_new
+   fun:BIO_new_file
+   obj:/usr/lib64/libcrypto.so.1.0.2k
+   fun:CONF_modules_load_file
+   obj:/usr/lib64/libcurl.so.4.5.0
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:CRYPTO_malloc
+   fun:lh_new
+   obj:/usr/lib64/libcrypto.so.1.0.2k
+   obj:/usr/lib64/libcrypto.so.1.0.2k
+   obj:/usr/lib64/libcrypto.so.1.0.2k
+   fun:BIO_set
+   fun:BIO_new
+   fun:BIO_new_file
+   obj:/usr/lib64/libcrypto.so.1.0.2k
+   fun:CONF_modules_load_file
+   obj:/usr/lib64/libcurl.so.4.5.0
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:_nc_scroll_optimize
+   fun:doupdate
+   fun:wrefresh
+   fun:_nc_synchook
+   fun:wechochar
+   fun:_nc_wgetch
+   fun:wgetch
+   fun:ui_initialize
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:_nc_setupterm
+   fun:newterm
+   fun:initscr
+   fun:ui_initialize
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:_nc_hash_map
+   fun:_nc_scroll_optimize
+   fun:doupdate
+   fun:wrefresh
+   fun:_nc_synchook
+   fun:wechochar
+   fun:_nc_wgetch
+   fun:wgetch
+   fun:ui_initialize
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:_nc_hash_map
+   fun:_nc_scroll_optimize
+   fun:doupdate
+   fun:wrefresh
+   fun:_nc_synchook
+   fun:wechochar
+   fun:_nc_wgetch
+   fun:wgetch
+   fun:ui_initialize
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:_nc_read_termtype
+   fun:_nc_read_file_entry
+   fun:_nc_read_entry
+   obj:/lib64/libtinfo.so.5.7
+   fun:_nc_setupterm
+   fun:newterm
+   fun:initscr
+   fun:ui_initialize
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:_nc_read_termtype
+   fun:_nc_read_file_entry
+   fun:_nc_read_entry
+   obj:/lib64/libtinfo.so.5.7
+   fun:_nc_setupterm
+   fun:newterm
+   fun:initscr
+   fun:ui_initialize
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:_nc_makenew
+   fun:newwin
+   fun:_nc_setupscreen
+   fun:newterm
+   fun:initscr
+   fun:ui_initialize
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:_nc_makenew
+   fun:newwin
+   fun:_nc_setupscreen
+   fun:newterm
+   fun:initscr
+   fun:ui_initialize
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:_nc_setupscreen
+   fun:newterm
+   fun:initscr
+   fun:ui_initialize
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:_nc_read_termtype
+   fun:_nc_read_file_entry
+   fun:_nc_read_entry
+   obj:/lib64/libtinfo.so.5.7
+   fun:_nc_setupterm
+   fun:newterm
+   fun:initscr
+   fun:ui_initialize
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:_nc_setupscreen
+   fun:newterm
+   fun:initscr
+   fun:ui_initialize
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:_nc_hash_map
+   fun:_nc_scroll_optimize
+   fun:doupdate
+   fun:wrefresh
+   fun:_nc_synchook
+   fun:wechochar
+   fun:_nc_wgetch
+   fun:wgetch
+   fun:ui_initialize
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:_nc_set_buffer
+   fun:_nc_setupscreen
+   fun:newterm
+   fun:initscr
+   fun:ui_initialize
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:realloc
+   fun:_nc_doalloc
+   fun:_nc_read_termtype
+   fun:_nc_read_file_entry
+   fun:_nc_read_entry
+   obj:/lib64/libtinfo.so.5.7
+   fun:_nc_setupterm
+   fun:newterm
+   fun:initscr
+   fun:ui_initialize
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:_nc_printf_string
+   fun:vwprintw
+   fun:printw
+   fun:ui_initialize
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:newwin
+   fun:_nc_setupscreen
+   fun:newterm
+   fun:initscr
+   fun:ui_initialize
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:newwin
+   fun:_nc_setupscreen
+   fun:newterm
+   fun:initscr
+   fun:ui_initialize
+   fun:main
+}
