@@ -138,15 +138,15 @@ static size_t get_unsigned_numeric(const char *data, jsmntok_t *cursor, size_t m
     return numeric;
 }
 
-page_content_t *parser_get_page_content(const char *content, size_t size) {
-    if (!content || size == 0) {
+page_row_t **parser_get_page_rows(const char *html, size_t size) {
+    if (!html || size == 0) {
         return NULL;
     }
 
     return NULL;
 }
 
-static page_content_t *parse_page_content(const char *data, jsmntok_t **cursor) {
+static page_row_t **get_rows(const char *data, jsmntok_t **cursor) {
     if ((*cursor)->type != JSMN_ARRAY) {
         return NULL;
     }
@@ -157,16 +157,15 @@ static page_content_t *parse_page_content(const char *data, jsmntok_t **cursor) 
         return NULL;
     }
 
+    // TODO: Add support for more than one element?
+    //       For certain pages, there are a "sub" page with other data, e.g. the stock market page
     // Go to the first array element
     next_token(cursor);
-    char *content_string = get_string(data, *cursor);
-    page_content_t *content = parser_get_page_content(
-                                  content_string,
-                                  token_length(*cursor)
-                              );
+    char *html = get_string(data, *cursor);
+    page_row_t **rows = parser_get_page_rows(html, token_length(*cursor));
     next_n_token(cursor, array_size - 1);
-    free(content_string);
-    return content;
+    free(html);
+    return rows;
 }
 
 static page_t *get_page(const char *data, jsmntok_t **cursor) {
@@ -190,7 +189,7 @@ static page_t *get_page(const char *data, jsmntok_t **cursor) {
         } else if (strcmp(key, "title") == 0) {
             page->title = get_unicode_string(data, *cursor);
         } else if (strcmp(key, "content") == 0) {
-            page->content = parse_page_content(data, cursor);
+            page->rows = get_rows(data, cursor);
         }
 
         free(key);

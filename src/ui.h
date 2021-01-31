@@ -1,6 +1,7 @@
 #pragma once
 #include <curses.h>
 #include <signal.h>
+#include "shared.h"
 #include "pages.h"
 
 void ui_initialize();

@@ -1,29 +1,26 @@
 #include "ui.h"
 
-#define WIN_COLS 42
-#define WIN_ROWS 24
-
 enum views {
     MAIN,
     HELP
 };
 
+// TODO: Add window buffer cache to prevent rerendering of pages when switching between MAIN and HELP
 // TODO: Add window where we will echo and take input
 static WINDOW *CONTENT_WIN;
-static int _ROWS, _COLS;
 static enum views CURRENT_VIEW = MAIN;
 
 static void draw_main_view(page_t *page) {
-    mvwprintw(CONTENT_WIN, WIN_ROWS / 2, WIN_COLS / 2, "MAIN WINDOW");
+    mvwprintw(CONTENT_WIN, 1, 1, "MAIN WINDOW");
 }
 
 static void draw_help_view() {
-    mvwprintw(CONTENT_WIN, WIN_ROWS / 2, WIN_COLS / 2, "HELP WINDOW");
+    mvwprintw(CONTENT_WIN, 1, 1, "HELP WINDOW");
 }
 
 static void draw(enum views view) {
     wclear(CONTENT_WIN);
-    
+
     switch (view) {
         case MAIN:
             draw_main_view(NULL);
@@ -34,7 +31,7 @@ static void draw(enum views view) {
         default:
             break;
     }
-    
+
     CURRENT_VIEW = view;
     move(0, 0);
     wborder(CONTENT_WIN, 0, 0, 0, 0, 0, 0, 0, 0);
@@ -42,13 +39,12 @@ static void draw(enum views view) {
 }
 
 static void resize_win() {
-    getmaxyx(stdscr, _ROWS, _COLS);
-    CONTENT_WIN = newwin(
-        WIN_ROWS,
-        WIN_COLS,
-        (_ROWS / 2) - (WIN_ROWS / 2),
-        (_COLS / 2) - (WIN_COLS / 2)
-    );
+    endwin();
+    clear();
+    refresh();
+    getmaxyx(stdscr, LINES, COLS);
+    mvwin(CONTENT_WIN, (LINES / 2) - (PAGE_LINES / 2), (COLS / 2) - (PAGE_COLS / 2));
+    refresh();
     draw(CURRENT_VIEW);
 }
 
@@ -58,18 +54,26 @@ static void resize_handler(int sig) {
 
 void ui_initialize() {
     initscr();
+    CONTENT_WIN = newwin(
+        PAGE_LINES,
+        PAGE_COLS,
+        (LINES / 2) - (PAGE_LINES / 2),
+        (COLS / 2) - (PAGE_COLS / 2)
+    );
     signal(SIGWINCH, resize_handler);
     noecho();
     nodelay(stdscr, TRUE);
     refresh();
-    resize_win();
+    draw(MAIN);
 }
 
 void ui_event_loop() {
     int key;
-    
+
     while (true)  {
-        key = getch();
+        // https://stackoverflow.com/questions/3808626/ncurses-refresh/3808913#3808913
+        key = wgetch(CONTENT_WIN);
+
         switch (key) {
             case '?':
                 draw(HELP);
@@ -84,8 +88,9 @@ void ui_event_loop() {
 }
 
 void ui_destroy() {
-    _ROWS = 0;
-    _COLS = 0;
+    LINES = 0;
+    COLS = 0;
     CURRENT_VIEW = MAIN;
+    delwin(CONTENT_WIN);
     endwin();
 }

@@ -77,7 +77,7 @@ void assert_parsed_page(
     uint16_t next_id,
     uint64_t unix_date,
     const char *title,
-    page_content_t *content
+    bool has_rows
 ) {
     CU_ASSERT_PTR_NOT_NULL_FATAL(page);
 
@@ -96,11 +96,10 @@ void assert_parsed_page(
         assert_string_value(page->title, title);
     }
 
-    if (!content) {
-        CU_ASSERT_PTR_NULL(page->content);
+    if (!has_rows) {
+        CU_ASSERT_PTR_NULL(page->rows);
     } else {
-        CU_ASSERT_PTR_NOT_NULL(page->content);
-        // TODO: Compare content
+        CU_ASSERT_PTR_NOT_NULL(page->rows);
     }
 }
 
@@ -133,7 +132,7 @@ void test_page_empty_title() {
         -1,
         -1,
         NULL,
-        NULL
+        false
     );
 
     page_collection_destroy(collection);
@@ -152,7 +151,7 @@ void test_page_single_char_title() {
         -1,
         -1,
         "x",
-        NULL
+        false
     );
 
     page_collection_destroy(collection);
@@ -171,7 +170,7 @@ void test_page_title_unescaped() {
         -1,
         -1,
         "abc-aaAAoO-def",
-        NULL
+        false
     );
 
     page_collection_destroy(collection);
@@ -190,7 +189,7 @@ void test_page_invalid_keys() {
         -1,
         -1,
         NULL,
-        NULL
+        false
     );
 
     page_collection_destroy(collection);
@@ -208,7 +207,7 @@ void test_page_large_content_array() {
         -1,
         -1,
         NULL,
-        NULL
+        false
     );
 
     page_collection_destroy(collection);
@@ -229,7 +228,7 @@ void test_page_invalid() {
         -1,
         -1,
         NULL,
-        NULL
+        false
     );
 
     page_collection_destroy(collection);
@@ -250,7 +249,7 @@ void test_page_collection_resize() {
         -1,
         -1,
         NULL,
-        NULL
+        false
     );
 
     assert_parsed_page(
@@ -260,7 +259,7 @@ void test_page_collection_resize() {
         -1,
         -1,
         NULL,
-        NULL
+        false
     );
 
     assert_parsed_page(
@@ -270,7 +269,7 @@ void test_page_collection_resize() {
         -1,
         -1,
         NULL,
-        NULL
+        false
     );
 
     page_collection_destroy(collection);
@@ -290,7 +289,7 @@ void test_page_single() {
         201,
         1612004371,
         "Svt",
-        NULL
+        false
     );
 
     page_collection_destroy(collection);
@@ -311,7 +310,7 @@ void test_page_range() {
         101,
         1612004855,
         "USA infor munskyddskrav for resande | Svensk test av virusmutationer drojer | Inrikes",
-        NULL
+        false
     );
 
     assert_parsed_page(
@@ -321,7 +320,7 @@ void test_page_range() {
         102,
         1612004794,
         "SVT Text",
-        NULL
+        false
     );
 
     assert_parsed_page(
@@ -331,7 +330,7 @@ void test_page_range() {
         103,
         1612007994,
         "SVT Text",
-        NULL
+        false
     );
 
     assert_parsed_page(
@@ -341,7 +340,7 @@ void test_page_range() {
         104,
         1612007994,
         "SVT Text",
-        NULL
+        false
     );
 
     assert_parsed_page(
@@ -351,7 +350,7 @@ void test_page_range() {
         105,
         1612004496,
         "SVT Text",
-        NULL
+        false
     );
 
     page_collection_destroy(collection);
@@ -372,7 +371,7 @@ void test_page_range_large() {
         201,
         1612004371,
         "Svt",
-        NULL
+        false
     );
 
     assert_parsed_page(
@@ -382,7 +381,7 @@ void test_page_range_large() {
         202,
         1612028945,
         "Svt",
-        NULL
+        false
     );
 
     assert_parsed_page(
@@ -392,7 +391,7 @@ void test_page_range_large() {
         203,
         1612028945,
         "Kalla:",
-        NULL
+        false
     );
 
     assert_parsed_page(
@@ -402,7 +401,7 @@ void test_page_range_large() {
         204,
         1612028945,
         "Kalla:",
-        NULL
+        false
     );
 
     assert_parsed_page(
@@ -412,7 +411,7 @@ void test_page_range_large() {
         205,
         1612028945,
         "Kalla:",
-        NULL
+        false
     );
 
     assert_parsed_page(
@@ -422,7 +421,7 @@ void test_page_range_large() {
         206,
         1612028945,
         "Kalla:",
-        NULL
+        false
     );
 
     page_collection_destroy(collection);

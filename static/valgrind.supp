@@ -633,3 +633,484 @@
    fun:ui_initialize
    fun:main
 }
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:strdup
+   fun:_nc_setupterm
+   fun:newterm_sp
+   fun:newterm
+   fun:initscr
+   fun:ui_initialize
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:strdup
+   obj:/usr/lib/libncursesw.so.6.2
+   fun:_nc_first_db
+   fun:_nc_read_entry2
+   fun:_nc_setup_tinfo
+   fun:_nc_setupterm
+   fun:newterm_sp
+   fun:newterm
+   fun:initscr
+   fun:ui_initialize
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:_nc_setupscreen_sp
+   fun:newterm_sp
+   fun:newterm
+   fun:initscr
+   fun:ui_initialize
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:_nc_first_db
+   fun:_nc_read_entry2
+   fun:_nc_setup_tinfo
+   fun:_nc_setupterm
+   fun:newterm_sp
+   fun:newterm
+   fun:initscr
+   fun:ui_initialize
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:_nc_home_terminfo
+   fun:_nc_first_db
+   fun:_nc_read_entry2
+   fun:_nc_setup_tinfo
+   fun:_nc_setupterm
+   fun:newterm_sp
+   fun:newterm
+   fun:initscr
+   fun:ui_initialize
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:realloc
+   fun:_nc_doalloc
+   fun:_nc_read_termtype
+   obj:/usr/lib/libncursesw.so.6.2
+   obj:/usr/lib/libncursesw.so.6.2
+   fun:_nc_read_entry2
+   fun:_nc_setup_tinfo
+   fun:_nc_setupterm
+   fun:newterm_sp
+   fun:newterm
+   fun:initscr
+   fun:ui_initialize
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   obj:/usr/lib/libncursesw.so.6.2
+   fun:_nc_setupterm
+   fun:newterm_sp
+   fun:newterm
+   fun:initscr
+   fun:ui_initialize
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:_nc_read_termtype
+   obj:/usr/lib/libncursesw.so.6.2
+   obj:/usr/lib/libncursesw.so.6.2
+   fun:_nc_read_entry2
+   fun:_nc_setup_tinfo
+   fun:_nc_setupterm
+   fun:newterm_sp
+   fun:newterm
+   fun:initscr
+   fun:ui_initialize
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   obj:/usr/lib/libncursesw.so.6.2
+   fun:_nc_setupterm
+   fun:newterm_sp
+   fun:newterm
+   fun:initscr
+   fun:ui_initialize
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:realloc
+   fun:_nc_doalloc
+   fun:tparm
+   fun:_nc_mvcur_init_sp
+   fun:newterm_sp
+   fun:newterm
+   fun:initscr
+   fun:ui_initialize
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:_nc_read_termtype
+   obj:/usr/lib/libncursesw.so.6.2
+   obj:/usr/lib/libncursesw.so.6.2
+   fun:_nc_read_entry2
+   fun:_nc_setup_tinfo
+   fun:_nc_setupterm
+   fun:newterm_sp
+   fun:newterm
+   fun:initscr
+   fun:ui_initialize
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   obj:/usr/lib/libncursesw.so.6.2
+   fun:_nc_setupterm
+   fun:newterm_sp
+   fun:newterm
+   fun:initscr
+   fun:ui_initialize
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:_nc_first_db
+   fun:_nc_read_entry2
+   fun:_nc_setup_tinfo
+   fun:_nc_setupterm
+   fun:newterm_sp
+   fun:newterm
+   fun:initscr
+   fun:ui_initialize
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:realloc
+   fun:_nc_doalloc
+   fun:_nc_tparm_analyze
+   fun:tparm
+   fun:vid_puts_sp
+   obj:/usr/lib/libncursesw.so.6.2
+   obj:/usr/lib/libncursesw.so.6.2
+   fun:doupdate_sp
+   fun:wrefresh
+   fun:draw
+   fun:ui_initialize
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:_nc_setupscreen_sp
+   fun:newterm_sp
+   fun:newterm
+   fun:initscr
+   fun:ui_initialize
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:realloc
+   fun:_nc_doalloc
+   fun:_nc_read_termtype
+   obj:/usr/lib/libncursesw.so.6.2
+   obj:/usr/lib/libncursesw.so.6.2
+   fun:_nc_read_entry2
+   fun:_nc_setup_tinfo
+   fun:_nc_setupterm
+   fun:newterm_sp
+   fun:newterm
+   fun:initscr
+   fun:ui_initialize
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:_nc_setupterm
+   fun:newterm_sp
+   fun:newterm
+   fun:initscr
+   fun:ui_initialize
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:_nc_makenew_sp
+   fun:newwin_sp
+   fun:_nc_setupscreen_sp
+   fun:newterm_sp
+   fun:newterm
+   fun:initscr
+   fun:ui_initialize
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:_nc_makenew_sp
+   fun:newwin_sp
+   fun:_nc_setupscreen_sp
+   fun:newterm_sp
+   fun:newterm
+   fun:initscr
+   fun:ui_initialize
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:_nc_makenew_sp
+   fun:newwin_sp
+   fun:_nc_setupscreen_sp
+   fun:newterm_sp
+   fun:newterm
+   fun:initscr
+   fun:ui_initialize
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:_nc_setupscreen_sp
+   fun:newterm_sp
+   fun:newterm
+   fun:initscr
+   fun:ui_initialize
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:_nc_makenew_sp
+   fun:newwin_sp
+   fun:_nc_setupscreen_sp
+   fun:newterm_sp
+   fun:newterm
+   fun:initscr
+   fun:ui_initialize
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:_nc_makenew_sp
+   fun:newwin_sp
+   fun:_nc_setupscreen_sp
+   fun:newterm_sp
+   fun:newterm
+   fun:initscr
+   fun:ui_initialize
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:_nc_makenew_sp
+   fun:newwin_sp
+   fun:_nc_setupscreen_sp
+   fun:newterm_sp
+   fun:newterm
+   fun:initscr
+   fun:ui_initialize
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:new_prescr
+   fun:newterm
+   fun:initscr
+   fun:ui_initialize
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:_nc_read_termtype
+   obj:/usr/lib/libncursesw.so.6.2
+   obj:/usr/lib/libncursesw.so.6.2
+   fun:_nc_read_entry2
+   fun:_nc_setup_tinfo
+   fun:_nc_setupterm
+   fun:newterm_sp
+   fun:newterm
+   fun:initscr
+   fun:ui_initialize
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:realloc
+   fun:_nc_doalloc
+   fun:_nc_read_termtype
+   obj:/usr/lib/libncursesw.so.6.2
+   obj:/usr/lib/libncursesw.so.6.2
+   fun:_nc_read_entry2
+   fun:_nc_setup_tinfo
+   fun:_nc_setupterm
+   fun:newterm_sp
+   fun:newterm
+   fun:initscr
+   fun:ui_initialize
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   obj:/usr/lib/libncursesw.so.6.2
+   fun:_nc_setupterm
+   fun:newterm_sp
+   fun:newterm
+   fun:initscr
+   fun:ui_initialize
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:_nc_init_wacs
+   fun:_nc_setupscreen_sp
+   fun:newterm_sp
+   fun:newterm
+   fun:initscr
+   fun:ui_initialize
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:_nc_printf_string_sp
+   fun:vwprintw
+   fun:mvwprintw
+   fun:draw_main_view
+   fun:draw
+   fun:ui_initialize
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:_nc_setupscreen_sp
+   fun:newterm_sp
+   fun:newterm
+   fun:initscr
+   fun:ui_initialize
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:newwin_sp
+   fun:_nc_setupscreen_sp
+   fun:newterm_sp
+   fun:newterm
+   fun:initscr
+   fun:ui_initialize
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:newwin_sp
+   fun:_nc_setupscreen_sp
+   fun:newterm_sp
+   fun:newterm
+   fun:initscr
+   fun:ui_initialize
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:newwin_sp
+   fun:_nc_setupscreen_sp
+   fun:newterm_sp
+   fun:newterm
+   fun:initscr
+   fun:ui_initialize
+   fun:main
+}

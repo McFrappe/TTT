@@ -5,27 +5,61 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include "shared.h"
 
 typedef struct page page_t;
+typedef struct page_row page_row_t;
+typedef struct page_token page_token_t;
+typedef struct page_token_style page_token_style_t;
 typedef struct page_collection page_collection_t;
-typedef struct page_content page_content_t;
-typedef enum page_content_type_t {
-    HEADLINE,
-    ARTICLE
-} page_content_type_t;
 
-struct page_content {
-    char *title;
+typedef enum page_token_attr {
+    PAGE_TOKEN_ATTR_BOLD,       // .DH
+    PAGE_TOKEN_ATTR_BLUE,       // .B
+    PAGE_TOKEN_ATTR_CYAN,       // .C
+    PAGE_TOKEN_ATTR_WHITE,      // .W
+    PAGE_TOKEN_ATTR_GREEN,      // .G
+    PAGE_TOKEN_ATTR_YELLOW,     // .Y
+    PAGE_TOKEN_ATTR_RED,        // .R
+    PAGE_TOKEN_ATTR_BG_BLUE,    // .bgB
+    PAGE_TOKEN_ATTR_BG_CYAN,    // .bgC
+    PAGE_TOKEN_ATTR_BG_WHITE,   // .bgW
+    PAGE_TOKEN_ATTR_BG_GREEN,   // .bgG
+    PAGE_TOKEN_ATTR_BG_YELLOW,  // .bgY
+    PAGE_TOKEN_ATTR_BG_RED,     // .bgR
+} page_token_attr_t;
+
+typedef enum page_token_type {
+    PAGE_TOKEN_HEADER,          // .toprow
+    PAGE_TOKEN_TEXT,            // -
+    PAGE_TOKEN_WHITESPACE,      // -
+    PAGE_TOKEN_LINK,            // <a>
+    PAGE_TOKEN_END,             // \n
+} page_token_type_t;
+
+struct page_token_style {
+    page_token_attr_t fg;
+    page_token_attr_t bg;
+    page_token_attr_t extra;
+};
+
+struct page_token {
     char *text;
-    uint16_t id;
-    page_content_type_t type;
+    uint8_t size;
+    page_token_type_t type;
+    page_token_style_t style;
+};
+
+struct page_row {
+    // An array of tokens terminated by a page_token_t with type 'PAGE_TOKEN_END'
+    page_token_t *tokens;
 };
 
 struct page {
+    char *title;
     uint16_t id, prev_id, next_id;
     uint64_t unix_date;
-    char *title;
-    page_content_t *content;
+    page_row_t **rows;
 };
 
 struct page_collection {
@@ -38,6 +72,6 @@ page_collection_t *page_collection_create(size_t size);
 bool page_is_empty(page_t *page);
 void page_collection_resize(page_collection_t *collection, size_t new_size);
 void page_destroy(page_t *page);
-void page_content_destroy(page_content_t *content);
+void page_rows_destroy(page_row_t **rows);
 void page_collection_destroy(page_collection_t *collection);
 void page_collection_print(page_collection_t *collection, const char *name);
