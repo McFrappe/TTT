@@ -19,7 +19,7 @@ static void next_n_token(jsmntok_t **cursor, size_t n) {
     }
 }
 
-static size_t calculate_token_length(jsmntok_t *cursor) {
+static size_t token_length(jsmntok_t *cursor) {
     if (!cursor) {
         return 0;
     }
@@ -27,8 +27,12 @@ static size_t calculate_token_length(jsmntok_t *cursor) {
     return cursor->end - cursor->start;
 }
 
+static bool string_is_literal_null(const char *str, size_t length) {
+    return strncmp(str, "null", length) == 0;
+}
+
 static char *get_unicode_string(const char *data, jsmntok_t *cursor) {
-    size_t length = calculate_token_length(cursor);
+    size_t length = token_length(cursor);
 
     if (!data || length == 0) {
         return NULL;
@@ -73,6 +77,11 @@ static char *get_unicode_string(const char *data, jsmntok_t *cursor) {
         }
     }
 
+    // 'null' is not a valid title name and indicates that something went wrong
+    if (string_is_literal_null(buf, buf_position)) {
+        return NULL;
+    }
+
     // Removing escape sequences means that the string will shrink in size
     // so we use buf_position as length
     char *escaped = calloc(buf_position + 1, sizeof(char));
@@ -82,7 +91,7 @@ static char *get_unicode_string(const char *data, jsmntok_t *cursor) {
 }
 
 static char *get_string(const char *data, jsmntok_t *cursor) {
-    size_t length = calculate_token_length(cursor);
+    size_t length = token_length(cursor);
 
     if (!data || length == 0) {
         return NULL;
@@ -100,9 +109,11 @@ static char *get_string(const char *data, jsmntok_t *cursor) {
 /// @param max_value the max value for the numeric type
 /// @return the numeric value or -1 if parsing failed or value is greater than max_value
 static size_t get_unsigned_numeric(const char *data, jsmntok_t *cursor, size_t max_value) {
+    size_t length = token_length(cursor);
     char *value = get_string(data, cursor);
 
-    if (!value) {
+    if (!value || string_is_literal_null(value, length)) {
+        free(value);
         return -1;
     }
 
@@ -151,7 +162,7 @@ static page_content_t *parse_page_content(const char *data, jsmntok_t **cursor) 
     char *content_string = get_string(data, *cursor);
     page_content_t *content = parser_get_page_content(
                                   content_string,
-                                  calculate_token_length(*cursor)
+                                  token_length(*cursor)
                               );
     next_n_token(cursor, array_size - 1);
     free(content_string);

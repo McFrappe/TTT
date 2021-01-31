@@ -214,6 +214,27 @@ void test_page_large_content_array() {
     page_collection_destroy(collection);
 }
 
+void test_page_invalid() {
+    // Contains the response of an invalid page, e.g. page id 0
+    char *str = "[{\"num\":null,\"title\":null,\"content\":[],\"next_page\":null,\
+                 \"prev_page\":null,\"date_updated_unix\":null,\
+                 \"permalink\":\"https://texttv.nu/0/-0\",\"id\":null}]";
+    page_collection_t *collection = parser_get_page_collection(str, strlen(str));
+
+    assert_page_collection(collection, 1);
+    assert_parsed_page(
+        collection->pages[0],
+        -1,
+        -1,
+        -1,
+        -1,
+        NULL,
+        NULL
+    );
+
+    page_collection_destroy(collection);
+}
+
 // Validates the parsing of the file at JSON_DATA_PAGE_PATH
 void test_page_single() {
     page_collection_t *collection = parser_get_page_collection(
@@ -386,6 +407,7 @@ int main() {
     CU_add_test(page_parser_suite, "test_page_invalid_keys", test_page_invalid_keys);
     CU_add_test(page_parser_suite, "test_page_object_without_array", test_page_object_without_array);
     CU_add_test(page_parser_suite, "test_page_title_unescaped", test_page_title_unescaped);
+    CU_add_test(page_parser_suite, "test_page_invalid", test_page_invalid);
     CU_add_test(page_parser_suite, "test_page_large_content_array", test_page_large_content_array);
     CU_add_test(page_parser_suite, "test_page_single", test_page_single);
     CU_add_test(page_parser_suite, "test_page_range", test_page_range);
