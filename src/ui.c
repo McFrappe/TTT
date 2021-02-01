@@ -1,8 +1,18 @@
 #include "ui.h"
+#include <locale.h>
 
 enum views {
     VIEW_MAIN,
     VIEW_HELP
+};
+
+// Color pair 0 is reserved for the system:
+// https://linux.die.net/man/3/color_pair
+enum colorschemes {
+    COLORSCHEME_SYSTEM,
+    COLORSCHEME_DEFAULT,
+    COLORSCHEME_HEADER,
+    // TODO: Add colorscheme for each colorscheme in response (docs/parser/html.md)
 };
 
 // TODO: Add window buffer cache to prevent rerendering of pages when switching between VIEW_MAIN and VIEW_HELP
@@ -18,7 +28,7 @@ static void draw_error() {
         return;
     }
 
-    mvwprintw(content_win, PAGE_LINES - 1, 1, error_str);
+    mvwprintw(content_win, PAGE_LINES - 1, 0, error_str);
 }
 
 static void draw_main(page_t *page) {
@@ -30,17 +40,25 @@ static void draw_main(page_t *page) {
         return;
     }
 
-    mvwprintw(content_win, 1, 1, "MAIN WINDOW");
-    mvwprintw(content_win, 1, PAGE_COLS - 4, "%d", current_collection->pages[0]->id);
-    mvwprintw(content_win, 2, 1, "%s", current_collection->pages[0]->title);
+    mvwprintw(content_win, 0, 0, "MAIN WINDOW");
+    mvwprintw(content_win, 0, PAGE_COLS - 3, "%d", current_collection->pages[0]->id);
+    wattron(content_win, COLOR_PAIR(COLORSCHEME_HEADER));
+    mvwprintw(content_win, 1, 0, "%s", current_collection->pages[0]->title);
+    wattroff(content_win, COLOR_PAIR(COLORSCHEME_HEADER));
 }
 
 static void draw_help() {
-    mvwprintw(content_win, 1, 1, "HELP WINDOW");
+    mvwprintw(content_win, 0, 0, "HELP WINDOW");
 }
 
 static void draw(enum views view) {
     wclear(content_win);
+    wattron(content_win, COLOR_PAIR(COLORSCHEME_DEFAULT));
+
+    // Fill with empty characters to show the background color
+    for (int i = 0; i < PAGE_LINES * PAGE_COLS; i++) {
+        waddch(content_win, ' ');
+    }
 
     switch (view) {
         case VIEW_MAIN:
@@ -54,8 +72,7 @@ static void draw(enum views view) {
     }
 
     current_view = view;
-    move(0, 0);
-    wborder(content_win, 0, 0, 0, 0, 0, 0, 0, 0);
+    wattroff(content_win, COLOR_PAIR(COLORSCHEME_DEFAULT));
     wrefresh(content_win);
 }
 
@@ -74,7 +91,11 @@ static void set_page(uint16_t page) {
         page_collection_destroy(current_collection);
     }
 
-    current_collection = api_get_page(page);
+    //current_collection = api_get_page(page);
+    current_collection = page_collection_create(1);
+    current_collection->pages[0] = page_create_empty();
+    current_collection->pages[0]->id = 100;
+    current_collection->pages[0]->title = strdup("Test page title");
     draw(VIEW_MAIN);
 }
 
@@ -92,9 +113,25 @@ static void resize_handler(int sig) {
     resize_win();
 }
 
+static void set_colorschemes() {
+    start_color();
+    use_default_colors();
+    // TODO: Save initial colors and restore on exit
+    //       E.g. if using pywal and st, updating these will
+    //       actually set the colors globally for the current instance
+    init_color(COLOR_BLACK, 0, 0, 0);
+    init_color(COLOR_BLUE, 0, 0, 500);
+    init_color(COLOR_YELLOW, 1000, 1000, 0);
+    init_color(COLOR_WHITE, 1000, 1000, 1000);
+    init_pair(COLORSCHEME_DEFAULT, COLOR_WHITE,   COLOR_BLACK);
+    init_pair(COLORSCHEME_HEADER,  COLOR_YELLOW,  COLOR_BLUE);
+}
+
 void ui_initialize() {
+    setlocale(LC_ALL, "");
     api_initialize();
     initscr();
+    set_colorschemes();
     content_win = newwin(
         PAGE_LINES,
         PAGE_COLS,
