@@ -77,7 +77,7 @@ void page_rows_destroy(page_row_t **rows) {
         return;
     }
 
-    for (size_t i = 0; i < PAGE_ROWS; i++) {
+    for (size_t i = 0; i < PAGE_LINES; i++) {
         free(rows[i]);
     }
 

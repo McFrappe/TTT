@@ -120,18 +120,7 @@ static size_t get_unsigned_numeric(const char *data, jsmntok_t *cursor, size_t m
     int numeric = atoi(value);
     free(value);
 
-    if (!numeric) {
-        printf("Expected numeric value for token, but got: %s\n", value);
-        return -1;
-    }
-
-    if (numeric < 0) {
-        printf("Expected positive numeric value: %d\n", numeric);
-        return -1;
-    }
-
-    if (numeric > max_value) {
-        printf("Expected numeric value smaller than max value: %d\n", numeric);
+    if (!numeric || numeric < 0 || numeric > max_value) {
         return -1;
     }
 
@@ -140,6 +129,10 @@ static size_t get_unsigned_numeric(const char *data, jsmntok_t *cursor, size_t m
 
 page_row_t **parser_get_page_rows(const char *html, size_t size) {
     if (!html || size == 0) {
+        error_set_with_string(
+            TTT_ERROR_HTML_PARSER_FAILED,
+            "ERROR: Could not parse empty HTML page content"
+        );
         return NULL;
     }
 
@@ -148,12 +141,20 @@ page_row_t **parser_get_page_rows(const char *html, size_t size) {
 
 static page_row_t **get_rows(const char *data, jsmntok_t **cursor) {
     if ((*cursor)->type != JSMN_ARRAY) {
+        error_set_with_string(
+            TTT_ERROR_HTML_PARSER_FAILED,
+            "ERROR: Could not parse invalid page content data type"
+        );
         return NULL;
     }
 
     size_t array_size = (*cursor)->size;
 
     if (array_size == 0) {
+        error_set_with_string(
+            TTT_ERROR_HTML_PARSER_FAILED,
+            "ERROR: Could not parse empty page content array"
+        );
         return NULL;
     }
 
@@ -200,6 +201,10 @@ static page_t *get_page(const char *data, jsmntok_t **cursor) {
 
 page_collection_t *parser_get_page_collection(const char *data, size_t size) {
     if (!data || size == 0) {
+        error_set_with_string(
+            TTT_ERROR_PAGE_PARSER_FAILED,
+            "ERROR: Could not parse empty response data"
+        );
         return NULL;
     }
 
@@ -209,6 +214,10 @@ page_collection_t *parser_get_page_collection(const char *data, size_t size) {
     size_t keys = jsmn_parse(&parser, data, size, tokens, sizeof(tokens) / sizeof(tokens[0]));
 
     if (keys < 3 || tokens[0].type != JSMN_ARRAY || tokens[1].type != JSMN_OBJECT) {
+        error_set_with_string(
+            TTT_ERROR_PAGE_PARSER_FAILED,
+            "ERROR: Could not parse response data with invalid structure"
+        );
         return NULL;
     }
 
@@ -231,6 +240,13 @@ page_collection_t *parser_get_page_collection(const char *data, size_t size) {
     }
 
     if (array_size > parsed_objects) {
+        if (parsed_objects == 0) {
+            error_set_with_string(
+                TTT_ERROR_PAGE_PARSER_FAILED,
+                "ERROR: No pages could be parsed"
+            );
+        }
+
         page_collection_resize(collection, parsed_objects);
     }
 

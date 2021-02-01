@@ -1,41 +1,81 @@
 #include "ui.h"
 
 enum views {
-    MAIN,
-    HELP
+    VIEW_MAIN,
+    VIEW_HELP
 };
 
-// TODO: Add window buffer cache to prevent rerendering of pages when switching between MAIN and HELP
+// TODO: Add window buffer cache to prevent rerendering of pages when switching between VIEW_MAIN and VIEW_HELP
 // TODO: Add window where we will echo and take input
-static WINDOW *CONTENT_WIN;
-static enum views CURRENT_VIEW = MAIN;
+static WINDOW *content_win;
+static enum views current_view = VIEW_MAIN;
+static page_collection_t *current_collection;
 
-static void draw_main_view(page_t *page) {
-    mvwprintw(CONTENT_WIN, 1, 1, "MAIN WINDOW");
+static void draw_error() {
+    const char *error_str = error_get_string();
+
+    if (!error_str) {
+        return;
+    }
+
+    mvwprintw(content_win, PAGE_LINES - 1, 1, error_str);
 }
 
-static void draw_help_view() {
-    mvwprintw(CONTENT_WIN, 1, 1, "HELP WINDOW");
+static void draw_main(page_t *page) {
+    if (error_is_set()) {
+        draw_error();
+    }
+
+    if (!current_collection) {
+        return;
+    }
+
+    mvwprintw(content_win, 1, 1, "MAIN WINDOW");
+    mvwprintw(content_win, 1, PAGE_COLS - 4, "%d", current_collection->pages[0]->id);
+    mvwprintw(content_win, 2, 1, "%s", current_collection->pages[0]->title);
+}
+
+static void draw_help() {
+    mvwprintw(content_win, 1, 1, "HELP WINDOW");
 }
 
 static void draw(enum views view) {
-    wclear(CONTENT_WIN);
+    wclear(content_win);
 
     switch (view) {
-        case MAIN:
-            draw_main_view(NULL);
+        case VIEW_MAIN:
+            draw_main(NULL);
             break;
-        case HELP:
-            draw_help_view();
+        case VIEW_HELP:
+            draw_help();
             break;
         default:
             break;
     }
 
-    CURRENT_VIEW = view;
+    current_view = view;
     move(0, 0);
-    wborder(CONTENT_WIN, 0, 0, 0, 0, 0, 0, 0, 0);
-    wrefresh(CONTENT_WIN);
+    wborder(content_win, 0, 0, 0, 0, 0, 0, 0, 0);
+    wrefresh(content_win);
+}
+
+static void toggle_view() {
+    if (current_view == VIEW_MAIN) {
+        draw(VIEW_HELP);
+    } else {
+        draw(VIEW_MAIN);
+    }
+}
+
+static void set_page(uint16_t page) {
+    error_reset();
+
+    if (current_collection) {
+        page_collection_destroy(current_collection);
+    }
+
+    current_collection = api_get_page(page);
+    draw(VIEW_MAIN);
 }
 
 static void resize_win() {
@@ -43,9 +83,9 @@ static void resize_win() {
     clear();
     refresh();
     getmaxyx(stdscr, LINES, COLS);
-    mvwin(CONTENT_WIN, (LINES / 2) - (PAGE_LINES / 2), (COLS / 2) - (PAGE_COLS / 2));
+    mvwin(content_win, (LINES / 2) - (PAGE_LINES / 2), (COLS / 2) - (PAGE_COLS / 2));
     refresh();
-    draw(CURRENT_VIEW);
+    draw(current_view);
 }
 
 static void resize_handler(int sig) {
@@ -53,8 +93,9 @@ static void resize_handler(int sig) {
 }
 
 void ui_initialize() {
+    api_initialize();
     initscr();
-    CONTENT_WIN = newwin(
+    content_win = newwin(
         PAGE_LINES,
         PAGE_COLS,
         (LINES / 2) - (PAGE_LINES / 2),
@@ -64,7 +105,7 @@ void ui_initialize() {
     noecho();
     nodelay(stdscr, TRUE);
     refresh();
-    draw(MAIN);
+    set_page(TTT_PAGE_HOME);
 }
 
 void ui_event_loop() {
@@ -72,14 +113,11 @@ void ui_event_loop() {
 
     while (true)  {
         // https://stackoverflow.com/questions/3808626/ncurses-refresh/3808913#3808913
-        key = wgetch(CONTENT_WIN);
+        key = wgetch(content_win);
 
         switch (key) {
             case '?':
-                draw(HELP);
-                break;
-            case 'x':
-                draw(MAIN);
+                toggle_view();
                 break;
             case 'q':
                 return;
@@ -90,7 +128,8 @@ void ui_event_loop() {
 void ui_destroy() {
     LINES = 0;
     COLS = 0;
-    CURRENT_VIEW = MAIN;
-    delwin(CONTENT_WIN);
+    current_view = VIEW_MAIN;
+    page_collection_destroy(current_collection);
+    delwin(content_win);
     endwin();
 }

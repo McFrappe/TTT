@@ -1,8 +1,4 @@
 #include "api.h"
-#include <stdlib.h>
-#include <string.h>
-#include <assert.h>
-#include <curl/curl.h>
 
 #define API_ID "terminaltexttv"
 #define URL_BUF_SIZE 256
@@ -24,7 +20,10 @@ static size_t write_callback(void *data, size_t size, size_t nmemb, void *extra)
     char *ptr = realloc(mem->data, mem->size + realsize + 1);
 
     if (ptr == NULL) {
-        printf("Out of memory!\n");
+        error_set_with_string(
+            TTT_ERROR_OUT_OF_MEMORY,
+            "ERROR: Failed to allocate memory for response text chunk"
+        );
         return 0;
     }
 
@@ -90,19 +89,13 @@ static page_collection_t *make_request(uint16_t start, uint16_t end) {
             free(chunk.data);
         }
 
-        printf("Fetch failed: %s\n", curl_easy_strerror(res_code));
+        error_set_with_string(TTT_ERROR_REQUEST_FAILED, curl_easy_strerror(res_code));
         return NULL;
     }
 
     /* printf("Response body: %s\n", chunk.data); */
     page_collection_t *collection = parser_get_page_collection(chunk.data, chunk.size);
     free(chunk.data);
-
-    if (!collection) {
-        printf("Could not parse response body!\n");
-        return NULL;
-    }
-
     return collection;
 }
 
