@@ -2,7 +2,7 @@ CC=gcc
 CFLAGS=-Wall -pedantic -g
 CFLAGS_LIB=-c
 
-LIBS=-lcurl -lncurses
+LIBS=-lcurl -lncursesw
 TEST_LIBS=-lcunit
 
 BASE_OBJ_FILES:=src/parser.o src/pages.o src/errors.c

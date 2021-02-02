@@ -31,69 +31,17 @@ static bool string_is_literal_null(const char *str, size_t length) {
     return strncmp(str, "null", length) == 0;
 }
 
-static char *get_unicode_string(const char *data, jsmntok_t *cursor) {
-    size_t length = token_length(cursor);
-
-    if (!data || length == 0) {
-        return NULL;
-    }
-
-    char buf[length];
-    char sequence_buf[ESCAPED_CHAR_SEQUENCE_LENGTH];
-    size_t buf_position = 0;
-    size_t start_index = cursor->start;
-    size_t end_index = cursor->end;
-
-    for (size_t i = start_index; i < end_index; i++, buf_position++) {
-        // Only search for escape sequences with the format \uXXXX
-        if (
-            data[i] == '\\' &&
-            (i + ESCAPED_CHAR_SEQUENCE_LENGTH) < end_index &&
-            data[i + 1] == 'u'
-        ) {
-            for (size_t j = 0; j < ESCAPED_CHAR_SEQUENCE_LENGTH; j++) {
-                sequence_buf[j] = data[i + j + 1];
-            }
-
-            i += ESCAPED_CHAR_SEQUENCE_LENGTH;
-
-            if (
-                strncmp(sequence_buf, "u00e4", ESCAPED_CHAR_SEQUENCE_LENGTH) == 0 ||
-                strncmp(sequence_buf, "u00e5", ESCAPED_CHAR_SEQUENCE_LENGTH) == 0
-            ) {
-                buf[buf_position] = 'a';
-            } else if (
-                strncmp(sequence_buf, "u00c4", ESCAPED_CHAR_SEQUENCE_LENGTH) == 0 ||
-                strncmp(sequence_buf, "u00c5", ESCAPED_CHAR_SEQUENCE_LENGTH) == 0
-            ) {
-                buf[buf_position] = 'A';
-            } else if (strncmp(sequence_buf, "u00f6", ESCAPED_CHAR_SEQUENCE_LENGTH) == 0) {
-                buf[buf_position] = 'o';
-            } else if (strncmp(sequence_buf, "u00d6", ESCAPED_CHAR_SEQUENCE_LENGTH) == 0) {
-                buf[buf_position] = 'O';
-            }
-        } else {
-            buf[buf_position] = data[i];
-        }
-    }
-
-    // 'null' is not a valid title name and indicates that something went wrong
-    if (string_is_literal_null(buf, buf_position)) {
-        return NULL;
-    }
-
-    // Removing escape sequences means that the string will shrink in size
-    // so we use buf_position as length
-    char *escaped = calloc(buf_position + 1, sizeof(char));
-    strncpy(escaped, buf, buf_position);
-    escaped[buf_position] = '\0';
-    return escaped;
-}
-
 static char *get_string(const char *data, jsmntok_t *cursor) {
     size_t length = token_length(cursor);
 
     if (!data || length == 0) {
+        return NULL;
+    }
+
+    const char *str_start = data + cursor->start;
+
+    // If the string is 'null' we assume that it is invalid
+    if (length == 4 && strncmp(str_start, "null", length) == 0) {
         return NULL;
     }
 
@@ -179,6 +127,10 @@ static page_t *get_page(const char *data, jsmntok_t **cursor) {
         key = get_string(data, *cursor);
         next_token(cursor);
 
+        if (!key) {
+            continue;
+        }
+
         if (strcmp(key, "num") == 0) {
             page->id = get_unsigned_numeric(data, *cursor, UINT16_MAX);
         } else if (strcmp(key, "prev_page") == 0) {
@@ -188,7 +140,7 @@ static page_t *get_page(const char *data, jsmntok_t **cursor) {
         } else if (strcmp(key, "date_updated_unix") == 0) {
             page->unix_date = get_unsigned_numeric(data, *cursor, SIZE_MAX);
         } else if (strcmp(key, "title") == 0) {
-            page->title = get_unicode_string(data, *cursor);
+            page->title = get_string(data, *cursor);
         } else if (strcmp(key, "content") == 0) {
             page->rows = get_rows(data, cursor);
         }

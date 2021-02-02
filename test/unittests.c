@@ -157,25 +157,6 @@ void test_page_single_char_title() {
     page_collection_destroy(collection);
 }
 
-void test_page_title_unescaped() {
-    char *str = "[{\"title\": \"abc-\\u00e4\\u00e5\\u00c4\\u00c5\\u00f6\\u00d6-def\"}]";
-    page_collection_t *collection = parser_get_page_collection(str, strlen(str));
-
-    assert_page_collection(collection, 1);
-
-    assert_parsed_page(
-        collection->pages[0],
-        -1,
-        -1,
-        -1,
-        -1,
-        "abc-aaAAoO-def",
-        false
-    );
-
-    page_collection_destroy(collection);
-}
-
 void test_page_invalid_keys() {
     char *str = "[{\"invalid\": \"asd\", \"xxx\": 100, \"yyy\": [\"zzz\"]}]";
     page_collection_t *collection = parser_get_page_collection(str, strlen(str));
@@ -309,7 +290,7 @@ void test_page_range() {
         100,
         101,
         1612004855,
-        "USA infor munskyddskrav for resande | Svensk test av virusmutationer drojer | Inrikes",
+        "USA inf\\u00f6r munskyddskrav f\\u00f6r resande | Svensk test av virusmutationer dr\\u00f6jer | Inrikes",
         false
     );
 
@@ -390,7 +371,7 @@ void test_page_range_large() {
         201,
         203,
         1612028945,
-        "Kalla:",
+        "K\\u00e4lla:",
         false
     );
 
@@ -400,7 +381,7 @@ void test_page_range_large() {
         202,
         204,
         1612028945,
-        "Kalla:",
+        "K\\u00e4lla:",
         false
     );
 
@@ -410,7 +391,7 @@ void test_page_range_large() {
         203,
         205,
         1612028945,
-        "Kalla:",
+        "K\\u00e4lla:",
         false
     );
 
@@ -420,7 +401,7 @@ void test_page_range_large() {
         204,
         206,
         1612028945,
-        "Kalla:",
+        "K\\u00e4lla:",
         false
     );
 
@@ -446,7 +427,6 @@ int main() {
     CU_add_test(page_parser_suite, "test_page_single_char_title", test_page_single_char_title);
     CU_add_test(page_parser_suite, "test_page_invalid_keys", test_page_invalid_keys);
     CU_add_test(page_parser_suite, "test_page_object_without_array", test_page_object_without_array);
-    CU_add_test(page_parser_suite, "test_page_title_unescaped", test_page_title_unescaped);
     CU_add_test(page_parser_suite, "test_page_invalid", test_page_invalid);
     CU_add_test(page_parser_suite, "test_page_collection_resize", test_page_collection_resize);
     CU_add_test(page_parser_suite, "test_page_large_content_array", test_page_large_content_array);

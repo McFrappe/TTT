@@ -3,7 +3,6 @@
 #define API_ID "terminaltexttv"
 #define URL_BUF_SIZE 256
 #define RANGE_BUF_SIZE 16
-#define MAX_RANGE 5
 
 typedef struct response_chunk {
     char *data;
@@ -116,7 +115,7 @@ page_collection_t *api_get_page(uint16_t page_id) {
 page_collection_t *api_get_page_range(uint16_t start, uint16_t end) {
     uint16_t range = end - start;
 
-    if (range > MAX_RANGE) {
+    if (range > MAX_PAGE_COLLECTION_SIZE) {
         // TODO: If the range is larger than the MAX, make several requests or error?
         //       Requesting a large amount of pages will just hang the program for a long time
     }

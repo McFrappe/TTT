@@ -41,6 +41,9 @@ void draw_main(WINDOW *win, page_t *page) {
     wattron(win, COLOR_PAIR(COLORSCHEME_HEADER));
     mvwprintw(win, 1, 0, "%s", page->title);
     wattroff(win, COLOR_PAIR(COLORSCHEME_HEADER));
+    wattron(win, COLOR_PAIR(COLORSCHEME_DEFAULT));
+    mvwprintw(win, 2, 0, "\u00e5\u00e4\u00f6");
+    wattroff(win, COLOR_PAIR(COLORSCHEME_DEFAULT));
 }
 
 void draw(WINDOW *win, view_t view, page_t *page) {
