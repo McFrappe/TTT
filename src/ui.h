@@ -1,10 +1,12 @@
 #pragma once
 #include <curses.h>
 #include <signal.h>
+#include <locale.h>
 
 #include "api.h"
+#include "draw.h"
 #include "pages.h"
-#include "errors.h"
+#include "colors.h"
 #include "shared.h"
 
 void ui_initialize();

@@ -6,7 +6,7 @@ LIBS=-lcurl -lncurses
 TEST_LIBS=-lcunit
 
 BASE_OBJ_FILES:=src/parser.o src/pages.o src/errors.c
-OBJ_FILES:=src/ui.o src/api.o $(BASE_OBJ_FILES)
+OBJ_FILES:=src/ui.o src/api.o src/draw.c src/colors.c $(BASE_OBJ_FILES)
 MAIN_FILES:=src/main.c $(OBJ_FILES)
 TEST_FILES:=test/unittests.c $(BASE_OBJ_FILES)
 
