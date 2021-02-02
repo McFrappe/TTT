@@ -1,4 +1,5 @@
 #include "ui.h"
+#include <curses.h>
 #include <locale.h>
 
 enum views {
@@ -40,7 +41,9 @@ static void draw_main(page_t *page) {
         return;
     }
 
-    mvwprintw(content_win, 0, 0, "MAIN WINDOW");
+    wattron(content_win, A_STANDOUT);
+    mvwprintw(content_win, 0, 0, " MAIN WINDOW ");
+    wattroff(content_win, A_STANDOUT);
     mvwprintw(content_win, 0, PAGE_COLS - 3, "%d", current_collection->pages[0]->id);
     wattron(content_win, COLOR_PAIR(COLORSCHEME_HEADER));
     mvwprintw(content_win, 1, 0, "%s", current_collection->pages[0]->title);
@@ -48,7 +51,11 @@ static void draw_main(page_t *page) {
 }
 
 static void draw_help() {
-    mvwprintw(content_win, 0, 0, "HELP WINDOW");
+    wattron(content_win, A_STANDOUT);
+    mvwprintw(content_win, 0, 0, " HELP WINDOW ");
+    wattroff(content_win, A_STANDOUT);
+    mvwprintw(content_win, 2, 0, "q - Quit the program");
+
 }
 
 static void draw(enum views view) {
