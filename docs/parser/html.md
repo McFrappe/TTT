@@ -1,20 +1,25 @@
 # HTML content parsing
 ## Tokens
-The HTML content is parsed into rows, where each row has a fixed size of 42
-characters (as defined by `PAGE_COLS` in `src/shared.h`). Each row is an array of
-`tokens` which will have all the attributes needed for the UI to render them
-properly. To fully render a row, iterate through the token array until the token
-type is `PAGE_TOKEN_END`.
+The HTML content is parsed into an array of tokens and since the data that is
+received from the API always has 42 characters between `\n`, line-wrapping in
+ncurses will automatically handle new rows. Each token which will have all the
+attributes needed for the UI to render it properly.
+
+Rendering of the tokens is done by iterating through each token until
+`PAGE_TOKEN_END` is found. `PAGE_TOKEN_NEWLINE` marks the end of the current
+line. However, new lines does not have to be handled manually, since the total
+character length of all previous tokens (after the previous `PAGE_TOKEN_NEWLINE`
+or start of the array) will always be 42 characters (as defined by `PAGE_COLS`).
 
 ### Types
-There are 4 different token types:
+There are 5 different token types:
 ```c
 typedef enum page_token_type {
-    PAGE_TOKEN_HEADER,      // is used when token has the `.toprow` class
-    PAGE_TOKEN_TEXT,        // is used when token is not empty without attributes
-    PAGE_TOKEN_WHITESPACE,  // is used when the token is empty
-    PAGE_TOKEN_LINK,        // is used when the token is surrounded by the `<a>` tag
-    PAGE_TOKEN_END,         // is used when the `\n` is found in the text
+    PAGE_TOKEN_TEXT,
+    PAGE_TOKEN_WHITESPACE,
+    PAGE_TOKEN_LINK,
+    PAGE_TOKEN_NEWLINE,
+    PAGE_TOKEN_END
 } page_token_type_t;
 ```
 
@@ -24,8 +29,8 @@ Each token will have a style, as defined by the struct:
 typedef struct page_token_style page_token_style_t;
 
 struct page_token_style {
-    page_token_attr_t fg;    // foreground color
-    page_token_attr_t bg;    // background color
+    page_token_attr_t fg;
+    page_token_attr_t bg;
     page_token_attr_t extra; // other attributes, e.g. bold text
 };
 ```

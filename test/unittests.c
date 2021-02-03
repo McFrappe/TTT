@@ -77,7 +77,7 @@ void assert_parsed_page(
     uint16_t next_id,
     uint64_t unix_date,
     const char *title,
-    bool has_rows
+    bool has_tokens
 ) {
     CU_ASSERT_PTR_NOT_NULL_FATAL(page);
 
@@ -96,10 +96,10 @@ void assert_parsed_page(
         assert_string_value(page->title, title);
     }
 
-    if (!has_rows) {
-        CU_ASSERT_PTR_NULL(page->rows);
+    if (!has_tokens) {
+        CU_ASSERT_PTR_NULL(page->tokens);
     } else {
-        CU_ASSERT_PTR_NOT_NULL(page->rows);
+        CU_ASSERT_PTR_NOT_NULL(page->tokens);
     }
 }
 

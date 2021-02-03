@@ -9,7 +9,6 @@
 #include "shared.h"
 
 typedef struct page page_t;
-typedef struct page_row page_row_t;
 typedef struct page_token page_token_t;
 typedef struct page_token_style page_token_style_t;
 typedef struct page_collection page_collection_t;
@@ -35,7 +34,8 @@ typedef enum page_token_type {
     PAGE_TOKEN_TEXT,            // -
     PAGE_TOKEN_WHITESPACE,      // -
     PAGE_TOKEN_LINK,            // <a>
-    PAGE_TOKEN_END,             // \n
+    PAGE_TOKEN_NEWLINE,         // \n
+    PAGE_TOKEN_END,             // EOF
 } page_token_type_t;
 
 struct page_token_style {
@@ -46,21 +46,17 @@ struct page_token_style {
 
 struct page_token {
     char *text;
+    // A single tokens text may never exceed PAGE_COLS characters
     uint8_t size;
     page_token_type_t type;
     page_token_style_t style;
-};
-
-struct page_row {
-    // An array of tokens terminated by a page_token_t with type 'PAGE_TOKEN_END'
-    page_token_t *tokens;
 };
 
 struct page {
     char *title;
     uint16_t id, prev_id, next_id;
     uint64_t unix_date;
-    page_row_t **rows;
+    page_token_t **tokens;
 };
 
 struct page_collection {
@@ -73,6 +69,6 @@ page_collection_t *page_collection_create(size_t size);
 bool page_is_empty(page_t *page);
 void page_collection_resize(page_collection_t *collection, size_t new_size);
 void page_destroy(page_t *page);
-void page_rows_destroy(page_row_t **rows);
+void page_tokens_destroy(page_token_t **tokens);
 void page_collection_destroy(page_collection_t *collection);
 void page_collection_print(page_collection_t *collection, const char *name);

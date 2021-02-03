@@ -6,7 +6,7 @@ static page_t empty_page = {
     .next_id = -1,
     .unix_date = -1,
     .title = NULL,
-    .rows = NULL
+    .tokens = NULL
 };
 
 page_t *page_create_empty() {
@@ -72,20 +72,20 @@ void page_collection_print(page_collection_t *collection, const char *name) {
     }
 }
 
-void page_rows_destroy(page_row_t **rows) {
-    if (!rows) {
+void page_tokens_destroy(page_token_t **tokens) {
+    if (!tokens) {
         return;
     }
 
     for (size_t i = 0; i < PAGE_LINES; i++) {
-        free(rows[i]);
+        free(tokens[i]);
     }
 
-    free(rows);
+    free(tokens);
 }
 
 void page_destroy(page_t *page) {
-    page_rows_destroy(page->rows);
+    page_tokens_destroy(page->tokens);
     free(page->title);
     free(page);
 }

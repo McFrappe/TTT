@@ -75,7 +75,7 @@ static size_t get_unsigned_numeric(const char *data, jsmntok_t *cursor, size_t m
     return numeric;
 }
 
-page_row_t **parser_get_page_rows(const char *html, size_t size) {
+page_token_t **parser_get_page_tokens(const char *html, size_t size) {
     if (!html || size == 0) {
         error_set_with_string(
             TTT_ERROR_HTML_PARSER_FAILED,
@@ -87,7 +87,7 @@ page_row_t **parser_get_page_rows(const char *html, size_t size) {
     return NULL;
 }
 
-static page_row_t **get_rows(const char *data, jsmntok_t **cursor) {
+static page_token_t **get_tokens(const char *data, jsmntok_t **cursor) {
     if ((*cursor)->type != JSMN_ARRAY) {
         error_set_with_string(
             TTT_ERROR_HTML_PARSER_FAILED,
@@ -111,10 +111,10 @@ static page_row_t **get_rows(const char *data, jsmntok_t **cursor) {
     // Go to the first array element
     next_token(cursor);
     char *html = get_string(data, *cursor);
-    page_row_t **rows = parser_get_page_rows(html, token_length(*cursor));
+    page_token_t **tokens = parser_get_page_tokens(html, token_length(*cursor));
     next_n_token(cursor, array_size - 1);
     free(html);
-    return rows;
+    return tokens;
 }
 
 static page_t *get_page(const char *data, jsmntok_t **cursor) {
@@ -142,7 +142,7 @@ static page_t *get_page(const char *data, jsmntok_t **cursor) {
         } else if (strcmp(key, "title") == 0) {
             page->title = get_string(data, *cursor);
         } else if (strcmp(key, "content") == 0) {
-            page->rows = get_rows(data, cursor);
+            page->tokens = get_tokens(data, cursor);
         }
 
         free(key);
