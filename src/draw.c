@@ -19,22 +19,25 @@ void print_keybinding(WINDOW *win, int *line, const char *desc, const char *key)
     int key_length = strlen(key);
     int dots = PAGE_COLS - desc_length - key_length - 2 * (PAGE_SIDE_PADDING);
 
+    wattron(win, COLOR_PAIR(COLORSCHEME_DEFAULT));
     mvwprintw(win, *line, PAGE_SIDE_PADDING, desc);
 
     for (int i = 0; i < dots;i++) {
         waddch(win, '.');
     }
 
+    wattron(win, COLOR_PAIR(COLORSCHEME_YX));
     wprintw(win, key);
+    wattroff(win, COLOR_PAIR(COLORSCHEME_YX));
     *line += 1;
 }
 
-void print_bold_title(WINDOW *win, int *line, const char *title, attr_t attrs) {
+void print_bold_title(WINDOW *win, int *line, const char *title) {
     // Add empty line above
     *line += 1;
-    wattron(win, A_BOLD | attrs);
+    wattron(win, A_BOLD | COLOR_PAIR(COLORSCHEME_YX));
     mvwprintw(win, *line, PAGE_SIDE_PADDING, title);
-    wattroff(win, A_BOLD | attrs);
+    wattroff(win, A_BOLD | COLOR_PAIR(COLORSCHEME_YX));
     *line += 1;
 }
 
@@ -57,7 +60,14 @@ void print_center(WINDOW *win, int *line, const char *str, int side_padding, att
     }
 
     mvwprintw(win, *line, center_start, str);
+    wattroff(win, attrs);
     *line += 1;
+}
+
+void print_center_fill(WINDOW *win, int *line, const char *str, attr_t attrs) {
+    fill_rows(win, line, 1, attrs);
+    *line -= 1;
+    print_center(win, line, str, 0, attrs);
 }
 
 void draw_error(WINDOW *win) {
@@ -74,18 +84,22 @@ static void draw_help(WINDOW *win) {
     int line = 0;
     print_toprow(win, &line, "0", "Keybindings");
     fill_rows(win, &line, 4, COLOR_PAIR(COLORSCHEME_YB));
-    print_bold_title(win, &line, "Navigation", 0);
+    print_bold_title(win, &line, "Navigation");
     print_keybinding(win, &line, "previous page", "h");
     print_keybinding(win, &line, "select next link on page", "j");
     print_keybinding(win, &line, "select previous link on page", "k");
     print_keybinding(win, &line, "next page", "l");
+    print_keybinding(win, &line, "show index page", "i");
     print_keybinding(win, &line, "go to selected link", "enter");
-    print_bold_title(win, &line, "General", 0);
+    print_bold_title(win, &line, "Command mode");
+    print_keybinding(win, &line, "enter command mode", ":");
+    print_keybinding(win, &line, "go to page", ":<page-number>");
+    print_bold_title(win, &line, "General");
     print_keybinding(win, &line, "display (this) help page", "?");
     print_keybinding(win, &line, "quit", "q");
     line = PAGE_LINES - 2;
     print_center(win, &line, "Page 1/1", PAGE_SIDE_PADDING_LG, COLOR_PAIR(COLORSCHEME_BY));
-    fill_rows(win, &line, 1, COLOR_PAIR(COLORSCHEME_YB));
+    print_center_fill(win, &line, "? to close", COLOR_PAIR(COLORSCHEME_YB));
 }
 
 static void draw_empty_page(WINDOW *win) {
