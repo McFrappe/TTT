@@ -44,13 +44,35 @@ static void set_page(uint16_t page) {
     draw(content_win, VIEW_MAIN, current_page);
 }
 
+static void create_win() {
+    content_win = newwin(
+        PAGE_LINES,
+        PAGE_COLS,
+        (LINES - PAGE_LINES) / 2,
+        (COLS - PAGE_COLS) / 2
+    );
+}
+
 static void resize_win() {
     endwin();
     clear();
     refresh();
     getmaxyx(stdscr, LINES, COLS);
-    mvwin(content_win, (LINES / 2) - (PAGE_LINES / 2), (COLS / 2) - (PAGE_COLS / 2));
-    refresh();
+
+    // If the window size is larger than the size of the terminal
+    // at launch, the window will no be created correctly.
+    // If this is the case, the window will be NULL and we simply
+    // try to create it again.
+    if (!content_win) {
+        create_win();
+    } else {
+        // This fixes a bug where the window "collapses" on resize
+        // and flows out to the side.
+        wresize(content_win, PAGE_LINES, PAGE_COLS);
+    }
+
+    // TODO: Move window to edges if the screen does not fit the window
+    mvwin(content_win, (LINES - PAGE_LINES) / 2, (COLS - PAGE_COLS) / 2);
     draw_refresh_current(content_win, current_page);
 }
 
@@ -65,12 +87,7 @@ void ui_initialize() {
     nodelay(stdscr, TRUE);
     api_initialize();
     colors_initialize();
-    content_win = newwin(
-        PAGE_LINES,
-        PAGE_COLS,
-        (LINES / 2) - (PAGE_LINES / 2),
-        (COLS / 2) - (PAGE_COLS / 2)
-    );
+    create_win();
     signal(SIGWINCH, resize_handler);
 
     // By checking the first char of each page buffer cache we can detect empty buffers
@@ -100,8 +117,6 @@ void ui_event_loop() {
 }
 
 void ui_destroy() {
-    LINES = 0;
-    COLS = 0;
     page_collection_destroy(current_collection);
     delwin(content_win);
     endwin();
