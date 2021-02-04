@@ -1,7 +1,21 @@
 #include "draw.h"
-#include "pages.h"
 
 static view_t current_view;
+
+/// @brief Prints a T in a 3x3 box 
+void print_logo_letter(WINDOW *win, int line, int *col) {
+    wattron(win, COLOR_PAIR(COLORSCHEME_BW));
+    wmove(win, line, *col);
+    for (int i = 0; i < 3; i++) {
+        waddch(win, ' ');
+    }
+    wmove(win, line + 1, (*col) + 1);
+    waddch(win, ' ');
+    wmove(win, line + 2, (*col) + 1);
+    waddch(win, ' ');
+    wattroff(win, COLOR_PAIR(COLORSCHEME_BW));
+    *col += 3 + PAGE_SIDE_PADDING;
+}
 
 void fill_rows(WINDOW *win, int *line, int rows, attr_t attr) {
     wattron(win, attr);
@@ -10,8 +24,19 @@ void fill_rows(WINDOW *win, int *line, int rows, attr_t attr) {
         waddch(win, ' ');
     }
     wattroff(win, attr);
-    wattron(win, COLOR_PAIR(COLORSCHEME_DEFAULT));
     *line += rows;
+}
+
+void print_logo(WINDOW *win, int *line) {
+    int col = PAGE_SIDE_PADDING;
+    fill_rows(win, line, 4, COLOR_PAIR(COLORSCHEME_YB));
+    *line -= 3;
+    print_logo_letter(win, *line, &col);
+    print_logo_letter(win, *line, &col);
+    print_logo_letter(win, *line, &col);
+    
+    mvwprintw(win, (*line) + 2, col + 7, "version: %s", VERSION);
+    *line += 3;
 }
 
 void print_keybinding(WINDOW *win, int *line, const char *desc, const char *key) {
@@ -83,7 +108,7 @@ void draw_error(WINDOW *win) {
 static void draw_help(WINDOW *win) {
     int line = 0;
     print_toprow(win, &line, "0", "Keybindings");
-    fill_rows(win, &line, 4, COLOR_PAIR(COLORSCHEME_YB));
+    print_logo(win, &line);
     print_bold_title(win, &line, "Navigation");
     print_keybinding(win, &line, "previous page", "h");
     print_keybinding(win, &line, "select next link on page", "j");

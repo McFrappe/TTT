@@ -8,6 +8,7 @@ void colors_initialize() {
     init_color(COLOR_YELLOW, 1000, 1000, 0);
     init_color(COLOR_WHITE, 1000, 1000, 1000);
     init_pair(COLORSCHEME_DEFAULT,  COLOR_WHITE,    COLOR_BLACK);
+    init_pair(COLORSCHEME_BW,       COLOR_BLACK,    COLOR_WHITE);
     init_pair(COLORSCHEME_YB,       COLOR_YELLOW,   COLOR_BLUE);
     init_pair(COLORSCHEME_BY,       COLOR_BLUE,     COLOR_YELLOW);
     init_pair(COLORSCHEME_YX,       COLOR_YELLOW,   COLOR_BLACK);
