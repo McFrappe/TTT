@@ -85,6 +85,8 @@ void ui_initialize() {
     initscr();
     noecho();
     nodelay(stdscr, TRUE);
+    // Hide cursor
+    curs_set(0);
     api_initialize();
     colors_initialize();
     create_win();
