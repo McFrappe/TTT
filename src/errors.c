@@ -29,16 +29,20 @@ const char *error_get_string() {
 
     // Default error code messages
     switch (code) {
-        case TTT_ERROR_OUT_OF_MEMORY:
-            return "ERROR: Out of memory";
-        case TTT_ERROR_REQUEST_FAILED:
-            return "ERROR: HTTP request failed";
-        case TTT_ERROR_PAGE_PARSER_FAILED:
-            return "ERROR: Could not parse response";
-        case TTT_ERROR_HTML_PARSER_FAILED:
-            return "ERROR: Could not parse HTML page content";
-        default:
-            return "ERROR: Unknown";
+    case TTT_ERROR_OUT_OF_MEMORY:
+        return "ERROR: Out of memory";
+
+    case TTT_ERROR_REQUEST_FAILED:
+        return "ERROR: HTTP request failed";
+
+    case TTT_ERROR_PAGE_PARSER_FAILED:
+        return "ERROR: Could not parse response";
+
+    case TTT_ERROR_HTML_PARSER_FAILED:
+        return "ERROR: Could not parse HTML page content";
+
+    default:
+        return "ERROR: Unknown";
     }
 }
 

@@ -6,13 +6,17 @@ static view_t current_view;
 void print_logo_letter(WINDOW *win, int line, int *col) {
     wattron(win, COLOR_PAIR(COLORSCHEME_BW) | A_UNDERLINE);
     wmove(win, line, *col);
+
     for (int i = 0; i < 6; i++) {
         waddch(win, ' ');
     }
+
     wmove(win, line + 1, (*col) + 2);
+
     for (int i = 0; i < 2; i++) {
         waddch(win, ' ');
     }
+
     wmove(win, line + 2, (*col) + 2);
     waddch(win, ' ');
     wattroff(win, COLOR_PAIR(COLORSCHEME_BW) | A_UNDERLINE);
@@ -22,9 +26,11 @@ void print_logo_letter(WINDOW *win, int line, int *col) {
 void fill_rows(WINDOW *win, int *line, int rows, attr_t attr) {
     wattron(win, attr);
     wmove(win, *line, 0);
+
     for (int i = 0; i < rows * PAGE_COLS; i++) {
         waddch(win, ' ');
     }
+
     wattroff(win, attr);
     *line += rows;
 }
@@ -36,7 +42,6 @@ void print_logo(WINDOW *win, int *line) {
     print_logo_letter(win, *line, &col);
     print_logo_letter(win, *line, &col);
     print_logo_letter(win, *line, &col);
-
     wattron(win, COLOR_PAIR(COLORSCHEME_WBL));
     mvwprintw(win, (*line) + 2, col + 2, "version: %s", VERSION);
     wattroff(win, COLOR_PAIR(COLORSCHEME_WBL));
@@ -47,11 +52,10 @@ void print_keybinding(WINDOW *win, int *line, const char *desc, const char *key)
     int desc_length = strlen(desc);
     int key_length = strlen(key);
     int dots = PAGE_COLS - desc_length - key_length - 2 * (PAGE_SIDE_PADDING);
-
     wattron(win, COLOR_PAIR(COLORSCHEME_DEFAULT));
     mvwprintw(win, *line, PAGE_SIDE_PADDING, desc);
 
-    for (int i = 0; i < dots;i++) {
+    for (int i = 0; i < dots; i++) {
         waddch(win, '.');
     }
 
@@ -80,7 +84,6 @@ void print_toprow(WINDOW *win, int *line, const char *id, const char *title) {
 void print_center(WINDOW *win, int *line, const char *str, int side_padding, attr_t attrs) {
     int str_length = strlen(str);
     int center_start = (PAGE_COLS - str_length) / 2;
-
     wattron(win, attrs);
     wmove(win, *line, center_start - side_padding);
 
@@ -158,14 +161,16 @@ void draw(WINDOW *win, view_t view, page_t *page) {
     }
 
     switch (view) {
-        case VIEW_MAIN:
-            draw_main(win, page);
-            break;
-        case VIEW_HELP:
-            draw_help(win);
-            break;
-        default:
-            break;
+    case VIEW_MAIN:
+        draw_main(win, page);
+        break;
+
+    case VIEW_HELP:
+        draw_help(win);
+        break;
+
+    default:
+        break;
     }
 
     current_view = view;

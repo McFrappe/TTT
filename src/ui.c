@@ -46,11 +46,11 @@ static void set_page(uint16_t page) {
 
 static void create_win() {
     content_win = newwin(
-        PAGE_LINES,
-        PAGE_COLS,
-        (LINES - PAGE_LINES) / 2,
-        (COLS - PAGE_COLS) / 2
-    );
+                      PAGE_LINES,
+                      PAGE_COLS,
+                      (LINES - PAGE_LINES) / 2,
+                      (COLS - PAGE_COLS) / 2
+                  );
 }
 
 static void resize_win() {
@@ -109,11 +109,12 @@ void ui_event_loop() {
         key = wgetch(content_win);
 
         switch (key) {
-            case '?':
-                draw_toggle_help(content_win, current_page);
-                break;
-            case 'q':
-                return;
+        case '?':
+            draw_toggle_help(content_win, current_page);
+            break;
+
+        case 'q':
+            return;
         }
     }
 }
