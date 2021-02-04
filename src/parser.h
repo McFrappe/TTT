@@ -8,6 +8,8 @@
 #include <limits.h>
 
 #include "pages.h"
+#include "shared.h"
+#include "errors.h"
 
-page_content_t *parser_get_page_content(const char *content, size_t size);
+page_t *parser_get_page_content(const char *content, size_t size);
 page_collection_t *parser_get_page_collection(const char *data, size_t size);

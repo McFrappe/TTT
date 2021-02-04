@@ -2,17 +2,17 @@ CC=gcc
 CFLAGS=-Wall -pedantic -g
 CFLAGS_LIB=-c
 
-LIBS=-lcurl -lncurses
+LIBS=-lcurl -lncursesw
 TEST_LIBS=-lcunit
 
-BASE_OBJ_FILES:=src/parser.o src/pages.o
-OBJ_FILES:=src/ui.o src/api.o $(BASE_OBJ_FILES)
+BASE_OBJ_FILES:=src/parser.o src/pages.o src/errors.c
+OBJ_FILES:=src/ui.o src/api.o src/draw.c src/colors.c $(BASE_OBJ_FILES)
 MAIN_FILES:=src/main.c $(OBJ_FILES)
 TEST_FILES:=test/unittests.c $(BASE_OBJ_FILES)
 
-DIST_DIR=build
-TTT_OUT_PATH=$(DIST_DIR)/ttt.out
-TEST_OUT_PATH=$(DIST_DIR)/tests.out
+DIST_DIR=bin
+TTT_OUT_PATH=$(DIST_DIR)/ttt
+TEST_OUT_PATH=$(DIST_DIR)/ttt_tests
 
 VALGRIND_FLAGS=--leak-check=full \
 	       --show-leak-kinds=all \
@@ -32,8 +32,14 @@ unittests: prebuild $(TEST_FILES)
 run: main
 	./$(TTT_OUT_PATH)
 
+runr: main
+	./$(TTT_OUT_PATH) -r
+
 memrun: main
 	valgrind $(VALGRIND_FLAGS) ./$(TTT_OUT_PATH)
+
+memrunr: main
+	valgrind $(VALGRIND_FLAGS) ./$(TTT_OUT_PATH) -r
 
 test: unittests
 	./$(TEST_OUT_PATH)
