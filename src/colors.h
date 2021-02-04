@@ -7,8 +7,9 @@ typedef enum colorschemes {
     COLORSCHEME_SYSTEM,
     COLORSCHEME_DEFAULT,    // WHITE-BLACK
     COLORSCHEME_BW,         // BLACK-WHITE
-    COLORSCHEME_BY,         // BLUE-YELLOW
-    COLORSCHEME_YB,         // YELLOW-BLUE
+    COLORSCHEME_WBL,        // WHITE-BLUE
+    COLORSCHEME_BLY,        // BLUE-YELLOW
+    COLORSCHEME_YBL,        // YELLOW-BLUE
     COLORSCHEME_YX,         // YELLOW-DEFAULT
     // TODO: Add colorscheme for each colorscheme in response (docs/parser/html.md)
 } colorschemes_t;

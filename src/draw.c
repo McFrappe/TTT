@@ -2,18 +2,20 @@
 
 static view_t current_view;
 
-/// @brief Prints a T in a 3x3 box 
+/// @brief Prints a T in a 3x3 box
 void print_logo_letter(WINDOW *win, int line, int *col) {
-    wattron(win, COLOR_PAIR(COLORSCHEME_BW));
+    wattron(win, COLOR_PAIR(COLORSCHEME_BW) | A_UNDERLINE);
     wmove(win, line, *col);
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 6; i++) {
         waddch(win, ' ');
     }
-    wmove(win, line + 1, (*col) + 1);
+    wmove(win, line + 1, (*col) + 2);
+    for (int i = 0; i < 2; i++) {
+        waddch(win, ' ');
+    }
+    wmove(win, line + 2, (*col) + 2);
     waddch(win, ' ');
-    wmove(win, line + 2, (*col) + 1);
-    waddch(win, ' ');
-    wattroff(win, COLOR_PAIR(COLORSCHEME_BW));
+    wattroff(win, COLOR_PAIR(COLORSCHEME_BW) | A_UNDERLINE);
     *col += 3 + PAGE_SIDE_PADDING;
 }
 
@@ -29,13 +31,15 @@ void fill_rows(WINDOW *win, int *line, int rows, attr_t attr) {
 
 void print_logo(WINDOW *win, int *line) {
     int col = PAGE_SIDE_PADDING;
-    fill_rows(win, line, 4, COLOR_PAIR(COLORSCHEME_YB));
+    fill_rows(win, line, 4, COLOR_PAIR(COLORSCHEME_YBL));
     *line -= 3;
     print_logo_letter(win, *line, &col);
     print_logo_letter(win, *line, &col);
     print_logo_letter(win, *line, &col);
-    
-    mvwprintw(win, (*line) + 2, col + 7, "version: %s", VERSION);
+
+    wattron(win, COLOR_PAIR(COLORSCHEME_WBL));
+    mvwprintw(win, (*line) + 2, col + 2, "version: %s", VERSION);
+    wattroff(win, COLOR_PAIR(COLORSCHEME_WBL));
     *line += 3;
 }
 
@@ -123,8 +127,8 @@ static void draw_help(WINDOW *win) {
     print_keybinding(win, &line, "display (this) help page", "?");
     print_keybinding(win, &line, "quit", "q");
     line = PAGE_LINES - 2;
-    print_center(win, &line, "Page 1/1", PAGE_SIDE_PADDING_LG, COLOR_PAIR(COLORSCHEME_BY));
-    print_center_fill(win, &line, "? to close", COLOR_PAIR(COLORSCHEME_YB));
+    print_center(win, &line, "Page 1/1", PAGE_SIDE_PADDING_LG, COLOR_PAIR(COLORSCHEME_BLY));
+    print_center_fill(win, &line, "? to close", COLOR_PAIR(COLORSCHEME_YBL));
 }
 
 static void draw_empty_page(WINDOW *win) {
