@@ -7,26 +7,28 @@
 #define JSON_DATA_PAGE_PATH "./test/data/index.json"
 #define JSON_DATA_PAGE_RANGE_PATH "./test/data/range.json"
 #define JSON_DATA_PAGE_RANGE_LARGE_PATH "./test/data/range_large.json"
+#define HTML_DATA_PAGE_1_PATH "./test/data/page1.html"
 
-typedef struct json {
+typedef struct file_data {
     char *data;
     size_t length;
-} json_t;
+} file_data_t;
 
-static json_t JSON_DATA_PAGE;
-static json_t JSON_DATA_PAGE_RANGE;
-static json_t JSON_DATA_PAGE_RANGE_LARGE;
+static file_data_t JSON_DATA_PAGE;
+static file_data_t JSON_DATA_PAGE_RANGE;
+static file_data_t JSON_DATA_PAGE_RANGE_LARGE;
+static file_data_t HTML_DATA_PAGE_1;
 
-bool load_test_data(json_t *dest, const char *path) {
+bool load_test_data(file_data_t *dest, const char *path) {
     FILE *f = fopen(path, "r");
 
     if (!f) {
         return false;
     }
 
-    fseek (f, 0, SEEK_END);
+    fseek(f, 0, SEEK_END);
     dest->length = ftell(f);
-    fseek (f, 0, SEEK_SET);
+    fseek(f, 0, SEEK_SET);
     dest->data = calloc(dest->length + 1, sizeof(char));
 
     if (!dest->data || !fread(dest->data, sizeof(char), dest->length, f)) {
@@ -37,9 +39,9 @@ bool load_test_data(json_t *dest, const char *path) {
     fclose(f);
 
     return true;
-}\
+}
 
-void destroy_test_data(json_t *json) {
+void destroy_test_data(file_data_t *json) {
     free(json->data);
 }
 
@@ -101,6 +103,39 @@ void assert_parsed_page(
     } else {
         CU_ASSERT_PTR_NOT_NULL(page->tokens);
     }
+}
+
+void assert_token(
+    page_token_t **tokens,
+    const char *expected_text,
+    page_token_type_t expected_type,
+    page_token_attr_t expected_bg,
+    page_token_attr_t expected_fg,
+    page_token_attr_t expected_extra
+) {
+    page_token_t *current = (*tokens);
+    CU_ASSERT_PTR_NOT_NULL_FATAL(current);
+    printf("Token: %s\n", current->text);
+    
+    if (
+        expected_type == PAGE_TOKEN_TEXT || 
+        expected_type == PAGE_TOKEN_HEADER ||
+        expected_type == PAGE_TOKEN_LINK
+    ) {
+        CU_ASSERT_PTR_NOT_NULL_FATAL(current->text);
+        CU_ASSERT_STRING_EQUAL(expected_text, current->text);
+        CU_ASSERT_EQUAL(strlen(expected_text), current->size);
+    } else {
+        CU_ASSERT_PTR_NULL(current->text);
+    }
+    
+    CU_ASSERT_EQUAL(expected_type, current->type);
+    CU_ASSERT_EQUAL(expected_bg, current->style.bg);
+    CU_ASSERT_EQUAL(expected_fg, current->style.fg);
+    CU_ASSERT_EQUAL(expected_extra, current->style.extra);
+    
+    // Move forward in tokens array
+    (*tokens)++;
 }
 
 void test_page_null_string() {
@@ -408,11 +443,27 @@ void test_page_range_large() {
     page_collection_destroy(collection);
 }
 
+void test_page_html_1() {
+    page_token_t **tokens = parser_get_page_tokens(HTML_DATA_PAGE_1.data, HTML_DATA_PAGE_1.length);
+    page_token_t **tokens_copy = tokens;
+    
+    CU_ASSERT_PTR_NOT_NULL_FATAL(tokens);
+    
+    assert_token(tokens, " 700 SVT Text        Torsdag 28 jan 2021", PAGE_TOKEN_HEADER, PAGE_TOKEN_ATTR_BG_BLACK, PAGE_TOKEN_ATTR_WHITE, -1);
+    // assert_token(tokens, "", PAGE_TOKEN_TEXT, 
+    // assert_token(tokens, "", PAGE_TOKEN_TEXT, 
+    // assert_token(tokens, "", PAGE_TOKEN_TEXT, 
+    // assert_token(tokens, "", PAGE_TOKEN_TEXT, 
+    
+    page_tokens_destroy(tokens_copy);
+}
+
 int main() {
     if (
         !load_test_data(&JSON_DATA_PAGE, JSON_DATA_PAGE_PATH) ||
         !load_test_data(&JSON_DATA_PAGE_RANGE, JSON_DATA_PAGE_RANGE_PATH) ||
-        !load_test_data(&JSON_DATA_PAGE_RANGE_LARGE, JSON_DATA_PAGE_RANGE_LARGE_PATH)
+        !load_test_data(&JSON_DATA_PAGE_RANGE_LARGE, JSON_DATA_PAGE_RANGE_LARGE_PATH) ||
+        !load_test_data(&HTML_DATA_PAGE_1, HTML_DATA_PAGE_1_PATH)
     ) {
         printf("Failed to load test JSON data!\n");
         exit(1);
@@ -420,6 +471,8 @@ int main() {
 
     CU_initialize_registry();
     CU_pSuite page_parser_suite = CU_add_suite("Page parser tests", 0, 0);
+    CU_pSuite html_parser_suite = CU_add_suite("HTML parser tests", 0, 0);
+    
     CU_add_test(page_parser_suite, "test_page_null_string", test_page_null_string);
     CU_add_test(page_parser_suite, "test_page_empty_string", test_page_empty_string);
     CU_add_test(page_parser_suite, "test_page_empty_array", test_page_empty_array);
@@ -433,11 +486,17 @@ int main() {
     CU_add_test(page_parser_suite, "test_page_single", test_page_single);
     CU_add_test(page_parser_suite, "test_page_range", test_page_range);
     CU_add_test(page_parser_suite, "test_page_range_large", test_page_range_large);
+    
+    CU_add_test(html_parser_suite, "test_page_html_1", test_page_html_1);
+    
     CU_basic_set_mode(CU_BRM_VERBOSE);
     CU_basic_run_tests();
     CU_cleanup_registry();
+    
     destroy_test_data(&JSON_DATA_PAGE);
     destroy_test_data(&JSON_DATA_PAGE_RANGE);
     destroy_test_data(&JSON_DATA_PAGE_RANGE_LARGE);
+    destroy_test_data(&HTML_DATA_PAGE_1);
+    
     return 0;
 }

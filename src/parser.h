@@ -11,5 +11,5 @@
 #include "shared.h"
 #include "errors.h"
 
-page_t *parser_get_page_content(const char *content, size_t size);
+page_token_t **parser_get_page_tokens(const char *content, size_t size);
 page_collection_t *parser_get_page_collection(const char *data, size_t size);

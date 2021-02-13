@@ -21,12 +21,14 @@ typedef enum page_token_attr {
     PAGE_TOKEN_ATTR_GREEN,      // .G
     PAGE_TOKEN_ATTR_YELLOW,     // .Y
     PAGE_TOKEN_ATTR_RED,        // .R
+    PAGE_TOKEN_ATTR_BG_BLACK,   // default
     PAGE_TOKEN_ATTR_BG_BLUE,    // .bgB
     PAGE_TOKEN_ATTR_BG_CYAN,    // .bgC
     PAGE_TOKEN_ATTR_BG_WHITE,   // .bgW
     PAGE_TOKEN_ATTR_BG_GREEN,   // .bgG
     PAGE_TOKEN_ATTR_BG_YELLOW,  // .bgY
     PAGE_TOKEN_ATTR_BG_RED,     // .bgR
+    PAGE_TOKEN_ATTR_NONE = -1
 } page_token_attr_t;
 
 typedef enum page_token_type {
