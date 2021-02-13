@@ -75,18 +75,6 @@ static size_t get_unsigned_numeric(const char *data, jsmntok_t *cursor, size_t m
     return numeric;
 }
 
-page_token_t **parser_get_page_tokens(const char *html, size_t size) {
-    if (!html || size == 0) {
-        error_set_with_string(
-            TTT_ERROR_HTML_PARSER_FAILED,
-            "ERROR: Could not parse empty HTML page content"
-        );
-        return NULL;
-    }
-
-    return NULL;
-}
-
 static page_token_t **get_tokens(const char *data, jsmntok_t **cursor) {
     if ((*cursor)->type != JSMN_ARRAY) {
         error_set_with_string(
@@ -111,7 +99,7 @@ static page_token_t **get_tokens(const char *data, jsmntok_t **cursor) {
     // Go to the first array element
     next_token(cursor);
     char *html = get_string(data, *cursor);
-    page_token_t **tokens = parser_get_page_tokens(html, token_length(*cursor));
+    page_token_t **tokens = html_parser_get_page_tokens(html, token_length(*cursor));
     next_n_token(cursor, array_size - 1);
     free(html);
     return tokens;

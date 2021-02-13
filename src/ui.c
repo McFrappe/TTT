@@ -104,7 +104,7 @@ void ui_initialize() {
 void ui_event_loop() {
     int key;
 
-    while (true)  {
+    while (true) {
         // https://stackoverflow.com/questions/3808626/ncurses-refresh/3808913#3808913
         key = wgetch(content_win);
 

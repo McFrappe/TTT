@@ -3,6 +3,7 @@
 #include <CUnit/Basic.h>
 #include "../src/pages.h"
 #include "../src/parser.h"
+#include "../src/html_parser.h"
 
 #define JSON_DATA_PAGE_PATH "./test/data/index.json"
 #define JSON_DATA_PAGE_RANGE_PATH "./test/data/range.json"
@@ -444,7 +445,7 @@ void test_page_range_large() {
 }
 
 void test_page_html_1() {
-    page_token_t **tokens = parser_get_page_tokens(HTML_DATA_PAGE_1.data, HTML_DATA_PAGE_1.length);
+    page_token_t **tokens = html_parser_get_page_tokens(HTML_DATA_PAGE_1.data, HTML_DATA_PAGE_1.length);
     page_token_t **tokens_copy = tokens;
     
     CU_ASSERT_PTR_NOT_NULL_FATAL(tokens);
