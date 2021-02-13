@@ -85,19 +85,6 @@ bool page_is_empty(page_t *page) {
     return memcmp(page, &empty_page, sizeof(empty_page)) == 0;
 }
 
-void page_collection_print(page_collection_t *collection, const char *name) {
-    for (size_t i = 0; i < collection->size; i++) {
-        printf("%s: PAGE %ld\n", name, i);
-        printf("* id: %d\n", collection->pages[i]->id);
-        printf("* prev_id: %d\n", collection->pages[i]->prev_id);
-        printf("* next_id: %d\n", collection->pages[i]->next_id);
-        printf("* unix_date: %lu\n", collection->pages[i]->unix_date);
-        printf("* title: %s\n", collection->pages[i]->title);
-        page_tokens_print(collection->pages[i]);
-        printf("\n");
-    }
-}
-
 void page_tokens_print(page_t *page) {
     if (!page->tokens) {
         printf("Page contains no tokens\n\n");
@@ -107,12 +94,29 @@ void page_tokens_print(page_t *page) {
     page_token_t *cursor = page->tokens;
 
     while (cursor != page->last_token) {
-        printf("** text: %s\n", cursor->text);
-        printf("** fg: %d\n", cursor->style.fg);
-        printf("** bg: %d\n", cursor->style.bg);
-        printf("** extra: %d\n", cursor->style.extra);
-        printf("\n");
+        printf("| - text: %s\n", cursor->text);
+        printf("| - fg: %d\n", cursor->style.fg);
+        printf("| - bg: %d\n", cursor->style.bg);
+        printf("| - extra: %d\n", cursor->style.extra);
+        printf("| \n");
         cursor = cursor->next;
+    }
+}
+
+void page_print(page_t *page) {
+    printf("\nPAGE %d\n", page->id);
+    printf("* id: %d\n", page->id);
+    printf("* prev_id: %d\n", page->prev_id);
+    printf("* next_id: %d\n", page->next_id);
+    printf("* unix_date: %lu\n", page->unix_date);
+    printf("* title: %s\n", page->title);
+    printf("* tokens: \n");
+    page_tokens_print(page);
+}
+
+void page_collection_print(page_collection_t *collection) {
+    for (size_t i = 0; i < collection->size; i++) {
+        page_print(collection->pages[i]);
     }
 }
 
@@ -123,6 +127,7 @@ void page_destroy(page_t *page) {
 
         while (cursor != NULL) {
             tmp = cursor->next;
+            free(cursor->text);
             free(cursor);
             cursor = tmp;
         }

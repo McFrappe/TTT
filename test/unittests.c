@@ -125,9 +125,8 @@ void assert_token(
         CU_ASSERT_PTR_NOT_NULL(current->text);
 
         if (current->text) {
-            printf("Token: %s\n", current->text);
             CU_ASSERT_STRING_EQUAL(expected_text, current->text);
-            CU_ASSERT_EQUAL(strlen(expected_text), current->size);
+            CU_ASSERT_EQUAL(strlen(expected_text), current->length);
         }
     } else {
         CU_ASSERT_PTR_NULL(current->text);
@@ -453,8 +452,7 @@ void test_page_html_1() {
     page_token_t *cursor = page->tokens;
 
     CU_ASSERT_PTR_NOT_NULL_FATAL(cursor);
-
-    page_tokens_print(page);
+    page_print(page);
 
     assert_token(&cursor, " 700 SVT Text        Torsdag 28 jan 2021", PAGE_TOKEN_HEADER, PAGE_TOKEN_ATTR_BG_BLACK, PAGE_TOKEN_ATTR_WHITE, -1);
 

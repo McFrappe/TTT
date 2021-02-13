@@ -48,7 +48,7 @@ struct page_token_style {
 
 struct page_token {
     char *text;
-    uint8_t size;
+    uint8_t length;
     page_token_type_t type;
     page_token_style_t style;
     page_token_t *next;
@@ -75,5 +75,6 @@ void page_collection_resize(page_collection_t *collection, size_t new_size);
 void page_destroy(page_t *page);
 void page_token_append(page_t *page, page_token_t *token);
 void page_collection_destroy(page_collection_t *collection);
-void page_collection_print(page_collection_t *collection, const char *name);
+void page_print(page_t *page);
 void page_tokens_print(page_t *page);
+void page_collection_print(page_collection_t *collection);
