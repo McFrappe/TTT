@@ -6,7 +6,8 @@ static page_t empty_page = {
     .next_id = -1,
     .unix_date = -1,
     .title = NULL,
-    .tokens = NULL
+    .tokens = NULL,
+    .last_token = NULL
 };
 
 page_t *page_create_empty() {
@@ -20,6 +21,17 @@ page_t *page_create_empty() {
     return page;
 }
 
+page_token_t *page_token_create_empty() {
+    page_token_t *token = calloc(1, sizeof(page_token_t));
+
+    token->type = PAGE_TOKEN_ATTR_NONE;
+    token->style.fg = PAGE_TOKEN_ATTR_WHITE,
+    token->style.bg = PAGE_TOKEN_ATTR_BG_BLACK;
+    token->style.extra = PAGE_TOKEN_ATTR_NONE;
+
+    return token;
+}
+
 page_collection_t *page_collection_create(size_t size) {
     page_collection_t *collection = calloc(1, sizeof(page_collection_t));
 
@@ -31,6 +43,20 @@ page_collection_t *page_collection_create(size_t size) {
 
     collection->size = size;
     return collection;
+}
+
+void page_token_append(page_t *page, page_token_t *token) {
+    if (!page || !token) {
+        return;
+    }
+
+    if (page->last_token) {
+        page->last_token->next = token;
+    } else {
+        page->tokens = token;
+    }
+
+    page->last_token = token;
 }
 
 void page_collection_resize(page_collection_t *collection, size_t new_size) {
@@ -67,21 +93,41 @@ void page_collection_print(page_collection_t *collection, const char *name) {
         printf("* next_id: %d\n", collection->pages[i]->next_id);
         printf("* unix_date: %lu\n", collection->pages[i]->unix_date);
         printf("* title: %s\n", collection->pages[i]->title);
-        // TODO: Print parsed content
+        page_tokens_print(collection->pages[i]);
         printf("\n");
     }
 }
 
-void page_tokens_destroy(page_token_t *tokens) {
-    if (!tokens) {
+void page_tokens_print(page_t *page) {
+    if (!page->tokens) {
+        printf("Page contains no tokens\n\n");
         return;
     }
 
-    free(tokens);
+    page_token_t *cursor = page->tokens;
+
+    while (cursor != page->last_token) {
+        printf("** text: %s\n", cursor->text);
+        printf("** fg: %d\n", cursor->style.fg);
+        printf("** bg: %d\n", cursor->style.bg);
+        printf("** extra: %d\n", cursor->style.extra);
+        printf("\n");
+        cursor = cursor->next;
+    }
 }
 
 void page_destroy(page_t *page) {
-    page_tokens_destroy(page->tokens);
+    if (page->tokens) {
+        page_token_t *tmp;
+        page_token_t *cursor = page->tokens;
+
+        while (cursor != NULL) {
+            tmp = cursor->next;
+            free(cursor);
+            cursor = tmp;
+        }
+    }
+
     free(page->title);
     free(page);
 }

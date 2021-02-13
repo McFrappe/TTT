@@ -75,13 +75,14 @@ static size_t get_unsigned_numeric(const char *data, jsmntok_t *cursor, size_t m
     return numeric;
 }
 
-static page_token_t *get_tokens(const char *data, jsmntok_t **cursor) {
+static void parse_content(page_t *page, const char *data, jsmntok_t **cursor) {
     if ((*cursor)->type != JSMN_ARRAY) {
         error_set_with_string(
             TTT_ERROR_HTML_PARSER_FAILED,
             "ERROR: Could not parse invalid page content data type"
         );
-        return NULL;
+
+        return;
     }
 
     size_t array_size = (*cursor)->size;
@@ -91,7 +92,8 @@ static page_token_t *get_tokens(const char *data, jsmntok_t **cursor) {
             TTT_ERROR_HTML_PARSER_FAILED,
             "ERROR: Could not parse empty page content array"
         );
-        return NULL;
+
+        return;
     }
 
     // TODO: Add support for more than one element?
@@ -99,10 +101,9 @@ static page_token_t *get_tokens(const char *data, jsmntok_t **cursor) {
     // Go to the first array element
     next_token(cursor);
     char *html = get_string(data, *cursor);
-    page_token_t *tokens = html_parser_get_page_tokens(html, token_length(*cursor));
+    html_parser_get_page_tokens(page, html, token_length(*cursor));
     next_n_token(cursor, array_size - 1);
     free(html);
-    return tokens;
 }
 
 static page_t *get_page(const char *data, jsmntok_t **cursor) {
@@ -130,7 +131,7 @@ static page_t *get_page(const char *data, jsmntok_t **cursor) {
         } else if (strcmp(key, "title") == 0) {
             page->title = get_string(data, *cursor);
         } else if (strcmp(key, "content") == 0) {
-            page->tokens = get_tokens(data, cursor);
+            parse_content(page, data, cursor);
         }
 
         free(key);

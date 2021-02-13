@@ -116,28 +116,28 @@ void assert_token(
 ) {
     page_token_t *current = (*tokens);
     CU_ASSERT_PTR_NOT_NULL_FATAL(current);
-    printf("Token: %s\n", current->text);
-    
+
     if (
-        expected_type == PAGE_TOKEN_TEXT || 
+        expected_type == PAGE_TOKEN_TEXT ||
         expected_type == PAGE_TOKEN_HEADER ||
         expected_type == PAGE_TOKEN_LINK
     ) {
         CU_ASSERT_PTR_NOT_NULL(current->text);
-        
+
         if (current->text) {
+            printf("Token: %s\n", current->text);
             CU_ASSERT_STRING_EQUAL(expected_text, current->text);
             CU_ASSERT_EQUAL(strlen(expected_text), current->size);
         }
     } else {
         CU_ASSERT_PTR_NULL(current->text);
     }
-    
+
     CU_ASSERT_EQUAL(expected_type, current->type);
     CU_ASSERT_EQUAL(expected_bg, current->style.bg);
     CU_ASSERT_EQUAL(expected_fg, current->style.fg);
     CU_ASSERT_EQUAL(expected_extra, current->style.extra);
-    
+
     // Move forward in tokens array
     (*tokens)++;
 }
@@ -309,7 +309,7 @@ void test_page_single() {
         201,
         1612004371,
         "Svt",
-        false
+        true
     );
 
     page_collection_destroy(collection);
@@ -330,7 +330,7 @@ void test_page_range() {
         101,
         1612004855,
         "USA inf\\u00f6r munskyddskrav f\\u00f6r resande | Svensk test av virusmutationer dr\\u00f6jer | Inrikes",
-        false
+        true
     );
 
     assert_parsed_page(
@@ -340,7 +340,7 @@ void test_page_range() {
         102,
         1612004794,
         "SVT Text",
-        false
+        true
     );
 
     assert_parsed_page(
@@ -350,7 +350,7 @@ void test_page_range() {
         103,
         1612007994,
         "SVT Text",
-        false
+        true
     );
 
     assert_parsed_page(
@@ -360,7 +360,7 @@ void test_page_range() {
         104,
         1612007994,
         "SVT Text",
-        false
+        true
     );
 
     assert_parsed_page(
@@ -370,7 +370,7 @@ void test_page_range() {
         105,
         1612004496,
         "SVT Text",
-        false
+        true
     );
 
     page_collection_destroy(collection);
@@ -391,7 +391,7 @@ void test_page_range_large() {
         201,
         1612004371,
         "Svt",
-        false
+        true
     );
 
     assert_parsed_page(
@@ -401,7 +401,7 @@ void test_page_range_large() {
         202,
         1612028945,
         "Svt",
-        false
+        true
     );
 
     assert_parsed_page(
@@ -411,7 +411,7 @@ void test_page_range_large() {
         203,
         1612028945,
         "K\\u00e4lla:",
-        false
+        true
     );
 
     assert_parsed_page(
@@ -421,7 +421,7 @@ void test_page_range_large() {
         204,
         1612028945,
         "K\\u00e4lla:",
-        false
+        true
     );
 
     assert_parsed_page(
@@ -431,7 +431,7 @@ void test_page_range_large() {
         205,
         1612028945,
         "K\\u00e4lla:",
-        false
+        true
     );
 
     assert_parsed_page(
@@ -441,25 +441,24 @@ void test_page_range_large() {
         206,
         1612028945,
         "K\\u00e4lla:",
-        false
+        true
     );
 
     page_collection_destroy(collection);
 }
 
 void test_page_html_1() {
-    page_token_t *tokens = html_parser_get_page_tokens(HTML_DATA_PAGE_1.data, HTML_DATA_PAGE_1.length);
-    page_token_t *tokens_copy = tokens;
-    
-    CU_ASSERT_PTR_NOT_NULL_FATAL(tokens);
-    
-    assert_token(&tokens, " 700 SVT Text        Torsdag 28 jan 2021", PAGE_TOKEN_HEADER, PAGE_TOKEN_ATTR_BG_BLACK, PAGE_TOKEN_ATTR_WHITE, -1);
-    // assert_token(tokens, "", PAGE_TOKEN_TEXT, 
-    // assert_token(tokens, "", PAGE_TOKEN_TEXT, 
-    // assert_token(tokens, "", PAGE_TOKEN_TEXT, 
-    // assert_token(tokens, "", PAGE_TOKEN_TEXT, 
-    
-    page_tokens_destroy(tokens_copy);
+    page_t *page = page_create_empty();
+    html_parser_get_page_tokens(page, HTML_DATA_PAGE_1.data, HTML_DATA_PAGE_1.length);
+    page_token_t *cursor = page->tokens;
+
+    CU_ASSERT_PTR_NOT_NULL_FATAL(cursor);
+
+    page_tokens_print(page);
+
+    assert_token(&cursor, " 700 SVT Text        Torsdag 28 jan 2021", PAGE_TOKEN_HEADER, PAGE_TOKEN_ATTR_BG_BLACK, PAGE_TOKEN_ATTR_WHITE, -1);
+
+    page_destroy(page);
 }
 
 int main() {
@@ -476,7 +475,7 @@ int main() {
     CU_initialize_registry();
     CU_pSuite page_parser_suite = CU_add_suite("Page parser tests", 0, 0);
     CU_pSuite html_parser_suite = CU_add_suite("HTML parser tests", 0, 0);
-    
+
     CU_add_test(page_parser_suite, "test_page_null_string", test_page_null_string);
     CU_add_test(page_parser_suite, "test_page_empty_string", test_page_empty_string);
     CU_add_test(page_parser_suite, "test_page_empty_array", test_page_empty_array);
@@ -490,17 +489,17 @@ int main() {
     CU_add_test(page_parser_suite, "test_page_single", test_page_single);
     CU_add_test(page_parser_suite, "test_page_range", test_page_range);
     CU_add_test(page_parser_suite, "test_page_range_large", test_page_range_large);
-    
+
     CU_add_test(html_parser_suite, "test_page_html_1", test_page_html_1);
-    
+
     CU_basic_set_mode(CU_BRM_VERBOSE);
     CU_basic_run_tests();
     CU_cleanup_registry();
-    
+
     destroy_test_data(&JSON_DATA_PAGE);
     destroy_test_data(&JSON_DATA_PAGE_RANGE);
     destroy_test_data(&JSON_DATA_PAGE_RANGE_LARGE);
     destroy_test_data(&HTML_DATA_PAGE_1);
-    
+
     return 0;
 }
