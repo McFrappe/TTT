@@ -72,13 +72,9 @@ void page_collection_print(page_collection_t *collection, const char *name) {
     }
 }
 
-void page_tokens_destroy(page_token_t **tokens) {
+void page_tokens_destroy(page_token_t *tokens) {
     if (!tokens) {
         return;
-    }
-
-    for (size_t i = 0; i < PAGE_LINES; i++) {
-        free(tokens[i]);
     }
 
     free(tokens);

@@ -11,4 +11,4 @@
 #include "shared.h"
 #include "errors.h"
 
-page_token_t **html_parser_get_page_tokens(const char *data, size_t size);
+page_token_t *html_parser_get_page_tokens(const char *data, size_t size);
