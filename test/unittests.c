@@ -107,14 +107,15 @@ void assert_parsed_page(
 }
 
 void assert_token(
-    page_token_t **tokens,
+    page_token_t **token,
     const char *expected_text,
+    uint16_t expected_href,
     page_token_type_t expected_type,
     page_token_attr_t expected_bg,
     page_token_attr_t expected_fg,
     page_token_attr_t expected_extra
 ) {
-    page_token_t *current = (*tokens);
+    page_token_t *current = (*token);
     CU_ASSERT_PTR_NOT_NULL_FATAL(current);
 
     if (
@@ -132,13 +133,14 @@ void assert_token(
         CU_ASSERT_PTR_NULL(current->text);
     }
 
+    CU_ASSERT_EQUAL(expected_href, current->href);
     CU_ASSERT_EQUAL(expected_type, current->type);
     CU_ASSERT_EQUAL(expected_bg, current->style.bg);
     CU_ASSERT_EQUAL(expected_fg, current->style.fg);
     CU_ASSERT_EQUAL(expected_extra, current->style.extra);
 
     // Move forward in tokens array
-    (*tokens)++;
+    (*token) = (*token)->next;
 }
 
 void test_page_null_string() {
@@ -454,7 +456,25 @@ void test_page_html_1() {
     CU_ASSERT_PTR_NOT_NULL_FATAL(cursor);
     page_print(page);
 
-    assert_token(&cursor, " 700 SVT Text        Torsdag 28 jan 2021", PAGE_TOKEN_HEADER, PAGE_TOKEN_ATTR_BG_BLACK, PAGE_TOKEN_ATTR_WHITE, -1);
+    assert_token(
+        &cursor,
+        " 700 SVT Text        Torsdag 28 jan 2021",
+        0,
+        PAGE_TOKEN_HEADER,
+        PAGE_TOKEN_ATTR_BG_BLACK,
+        PAGE_TOKEN_ATTR_WHITE,
+        -1
+    );
+
+    assert_token(
+        &cursor,
+        " ",
+        0,
+        PAGE_TOKEN_TEXT,
+        PAGE_TOKEN_ATTR_BG_YELLOW,
+        PAGE_TOKEN_ATTR_YELLOW,
+        -1
+    );
 
     page_destroy(page);
 }

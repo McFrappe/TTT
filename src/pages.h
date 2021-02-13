@@ -34,10 +34,8 @@ typedef enum page_token_attr {
 typedef enum page_token_type {
     PAGE_TOKEN_HEADER,          // .toprow
     PAGE_TOKEN_TEXT,            // -
-    PAGE_TOKEN_WHITESPACE,      // -
     PAGE_TOKEN_LINK,            // <a>
     PAGE_TOKEN_NEWLINE,         // \n
-    PAGE_TOKEN_END,             // EOF
 } page_token_type_t;
 
 struct page_token_style {
@@ -48,6 +46,7 @@ struct page_token_style {
 
 struct page_token {
     char *text;
+    uint16_t href;
     uint8_t length;
     page_token_type_t type;
     page_token_style_t style;

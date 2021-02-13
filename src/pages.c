@@ -24,7 +24,7 @@ page_t *page_create_empty() {
 page_token_t *page_token_create_empty() {
     page_token_t *token = calloc(1, sizeof(page_token_t));
 
-    token->type = PAGE_TOKEN_ATTR_NONE;
+    token->type = PAGE_TOKEN_TEXT;
     token->style.fg = PAGE_TOKEN_ATTR_WHITE,
     token->style.bg = PAGE_TOKEN_ATTR_BG_BLACK;
     token->style.extra = PAGE_TOKEN_ATTR_NONE;
@@ -94,7 +94,10 @@ void page_tokens_print(page_t *page) {
     page_token_t *cursor = page->tokens;
 
     while (cursor != page->last_token) {
+        printf("| - type: %d\n", cursor->type);
         printf("| - text: %s\n", cursor->text);
+        printf("| - length: %d\n", cursor->length);
+        printf("| - href: %d\n", cursor->href);
         printf("| - fg: %d\n", cursor->style.fg);
         printf("| - bg: %d\n", cursor->style.bg);
         printf("| - extra: %d\n", cursor->style.extra);
