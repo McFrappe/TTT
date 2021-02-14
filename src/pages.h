@@ -33,9 +33,8 @@ typedef enum page_token_attr {
 
 typedef enum page_token_type {
     PAGE_TOKEN_HEADER,          // .toprow
-    PAGE_TOKEN_TEXT,            // -
-    PAGE_TOKEN_LINK,            // <a>
-    PAGE_TOKEN_NEWLINE,         // \n
+    PAGE_TOKEN_TEXT,            // any text content inside tags
+    PAGE_TOKEN_LINK             // <a>
 } page_token_type_t;
 
 struct page_token_style {
@@ -73,6 +72,7 @@ bool page_is_empty(page_t *page);
 void page_collection_resize(page_collection_t *collection, size_t new_size);
 void page_destroy(page_t *page);
 void page_token_append(page_t *page, page_token_t *token);
+void page_token_inherit_style(page_t *page, page_token_t *token);
 void page_collection_destroy(page_collection_t *collection);
 void page_print(page_t *page);
 void page_tokens_print(page_t *page);

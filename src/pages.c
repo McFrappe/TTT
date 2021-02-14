@@ -59,6 +59,15 @@ void page_token_append(page_t *page, page_token_t *token) {
     page->last_token = token;
 }
 
+void page_token_inherit_style(page_t *page, page_token_t *token) {
+    // use same style as previous token
+    if (page->last_token) {
+        token->style.bg = page->last_token->style.bg;
+        token->style.fg = page->last_token->style.fg;
+        token->style.extra = page->last_token->style.extra;
+    }
+}
+
 void page_collection_resize(page_collection_t *collection, size_t new_size) {
     if (!collection || collection->size == new_size) {
         return;

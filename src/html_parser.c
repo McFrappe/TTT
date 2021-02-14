@@ -1,6 +1,5 @@
 #include "html_parser.h"
 
-#define MAX_TOKENS                  256
 #define MAX_TOKEN_TEXT_LENGTH       256
 #define NEW_LINE_SEQUENCE_LENGTH    2   // \n
 #define DIV_TAG_START_LENGTH        20  // <div class=\"root\"> = 20 chars
@@ -42,6 +41,16 @@ static void set_token_text(page_token_t *token, char *str, size_t length) {
     token->text[token->length] = '\0';
 }
 
+static void add_separator_token(page_t *page, char *str, size_t length, bool inherit_style) {
+    page_token_t *token = page_token_create_empty();
+    page_token_append(page, token);
+    set_token_text(token, str, length);
+
+    if (inherit_style) {
+        page_token_inherit_style(page, token);
+    }
+}
+
 /// @brief Removes unnecessary backslashes and div-tag
 static bool clean_content_junk(char *buf, const char *html_content, size_t size) {
     int buf_position = 0;
@@ -79,13 +88,7 @@ static bool parse_a_tag(page_t *page, char **cursor) {
 
     page_token_t *token = page_token_create_empty();
     page_token_append(page, token);
-
-    // Use same style as previous token
-    if (page->last_token) {
-        token->style.bg = page->last_token->style.bg;
-        token->style.fg = page->last_token->style.fg;
-        token->style.extra = page->last_token->style.extra;
-    }
+    page_token_inherit_style(page, token);
 
     // Go to start of href id
     next_n_token(cursor, A_TAG_HREF_OFFSET);
@@ -135,6 +138,39 @@ static bool parse_a_tag(page_t *page, char **cursor) {
 
     // Go to the character after the a tag
     next_n_token(cursor, A_TAG_END_LENGTH);
+
+    return true;
+}
+
+static bool parse_whitespace(page_t *page, char **cursor, bool inherit_style) {
+    // Buffer for storing any characters between spans
+    int i = 0;
+    char separator_buf[MAX_TOKEN_TEXT_LENGTH];
+
+    while (**cursor != '<') {
+        if (**cursor == '\0') {
+            return false;
+        } else if (is_newline(cursor)) {
+            // Some spans will be separated by new line and possibly some content
+            if (i != 0) {
+                add_separator_token(page, separator_buf, i, inherit_style);
+                i = 0;
+                separator_buf[0] = '\0';
+            }
+
+            // Move to next non-newline character
+            next_n_token(cursor, NEW_LINE_SEQUENCE_LENGTH);
+        } else {
+            separator_buf[i] = **cursor;
+            i++;
+            next_token(cursor);
+        }
+    }
+
+    // When we find the end of the span tag, add the previous whitespace token (if any)
+    if (i != 0) {
+        add_separator_token(page, separator_buf, i, inherit_style);
+    }
 
     return true;
 }
@@ -212,15 +248,29 @@ static bool parse_span_tag(page_t *page, char **cursor) {
     // Move to the end of the span-tag
     while ((*cursor)[0] != '\0') {
         if (is_newline(cursor)) {
-            // TODO: Add newline token and another whitespace/text token for the content after.
-            //       This is why the text assertion is currently failing for the first token.
+            // Save current token text before parsing the (possible) whitespace
+            set_token_text(token, text_buf, i);
+
+            // Move to next non-newline character
             next_n_token(cursor, NEW_LINE_SEQUENCE_LENGTH);
+
+            if (!parse_whitespace(page, cursor, true)) {
+                return false;
+            }
+
+            // Reset buf so that we do not try and save the token text again
+            // when we find the end of the span tag
+            i = 0;
+            text_buf[0] = '\0';
         } else if (is_start_of_tag(cursor, 'a')) {
             if (!parse_a_tag(page, cursor)) {
                 return false;
             }
         } else if (is_end_of_tag(cursor, 's')) {
-            set_token_text(token, text_buf, i);
+            if (i != 0) {
+                set_token_text(token, text_buf, i);
+            }
+
             next_n_token(cursor, SPAN_TAG_END_LENGTH);
             break;
         } else {
@@ -255,16 +305,6 @@ void html_parser_get_page_tokens(page_t *page, const char *html, size_t size) {
             break;
         }
 
-        // Some spans will be separated by new line and possibly some content.
-        // Make sure to skip this before trying to parse a span.
-        if (*cursor != '\0' && is_newline(&cursor)) {
-            while (*cursor != '<') {
-                if (*cursor == '\0') {
-                    return;
-                }
-
-                next_token(&cursor);
-            }
-        }
+        parse_whitespace(page, &cursor, false);
     }
 }

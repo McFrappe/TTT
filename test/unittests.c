@@ -10,6 +10,8 @@
 #define JSON_DATA_PAGE_RANGE_LARGE_PATH "./test/data/range_large.json"
 #define HTML_DATA_PAGE_1_PATH "./test/data/page1.html"
 
+#define NO_HREF 0
+
 typedef struct file_data {
     char *data;
     size_t length;
@@ -454,27 +456,118 @@ void test_page_html_1() {
     page_token_t *cursor = page->tokens;
 
     CU_ASSERT_PTR_NOT_NULL_FATAL(cursor);
-    page_print(page);
+    //page_print(page);
 
-    assert_token(
-        &cursor,
+    assert_token(&cursor,
         " 700 SVT Text        Torsdag 28 jan 2021",
-        0,
+        NO_HREF,
         PAGE_TOKEN_HEADER,
         PAGE_TOKEN_ATTR_BG_BLACK,
         PAGE_TOKEN_ATTR_WHITE,
-        -1
+        PAGE_TOKEN_ATTR_NONE
     );
 
     assert_token(
         &cursor,
         " ",
-        0,
+        NO_HREF,
+        PAGE_TOKEN_TEXT,
+        PAGE_TOKEN_ATTR_BG_BLACK,
+        PAGE_TOKEN_ATTR_WHITE,
+        PAGE_TOKEN_ATTR_NONE
+    );
+
+    assert_token(
+        &cursor,
+        " ",
+        NO_HREF,
         PAGE_TOKEN_TEXT,
         PAGE_TOKEN_ATTR_BG_YELLOW,
         PAGE_TOKEN_ATTR_YELLOW,
-        -1
+        PAGE_TOKEN_ATTR_NONE
     );
+
+    assert_token(
+        &cursor,
+        " ",
+        NO_HREF,
+        PAGE_TOKEN_TEXT,
+        PAGE_TOKEN_ATTR_BG_YELLOW,
+        PAGE_TOKEN_ATTR_YELLOW,
+        PAGE_TOKEN_ATTR_NONE
+    );
+
+    assert_token(
+        &cursor,
+        " ",
+        NO_HREF,
+        PAGE_TOKEN_TEXT,
+        PAGE_TOKEN_ATTR_BG_BLUE,
+        PAGE_TOKEN_ATTR_BLUE,
+        PAGE_TOKEN_ATTR_NONE
+    );
+
+    assert_token(
+        &cursor,
+        "                                    ",
+        NO_HREF,
+        PAGE_TOKEN_TEXT,
+        PAGE_TOKEN_ATTR_BG_BLUE,
+        PAGE_TOKEN_ATTR_BLUE,
+        PAGE_TOKEN_ATTR_NONE
+    );
+
+    assert_token(
+        &cursor,
+        " ",
+        NO_HREF,
+        PAGE_TOKEN_TEXT,
+        PAGE_TOKEN_ATTR_BG_BLACK,
+        PAGE_TOKEN_ATTR_WHITE,
+        PAGE_TOKEN_ATTR_NONE
+    );
+
+    assert_token(
+        &cursor,
+        " ",
+        NO_HREF,
+        PAGE_TOKEN_TEXT,
+        PAGE_TOKEN_ATTR_BG_YELLOW,
+        PAGE_TOKEN_ATTR_YELLOW,
+        PAGE_TOKEN_ATTR_NONE
+    );
+
+    assert_token(
+        &cursor,
+        " ",
+        NO_HREF,
+        PAGE_TOKEN_TEXT,
+        PAGE_TOKEN_ATTR_BG_YELLOW,
+        PAGE_TOKEN_ATTR_YELLOW,
+        PAGE_TOKEN_ATTR_NONE
+    );
+
+    assert_token(
+        &cursor,
+        " ",
+        NO_HREF,
+        PAGE_TOKEN_TEXT,
+        PAGE_TOKEN_ATTR_BG_BLUE,
+        PAGE_TOKEN_ATTR_BLUE,
+        PAGE_TOKEN_ATTR_NONE
+    );
+
+    assert_token(
+        &cursor,
+        "                                    ",
+        NO_HREF,
+        PAGE_TOKEN_TEXT,
+        PAGE_TOKEN_ATTR_BG_BLUE,
+        PAGE_TOKEN_ATTR_BLUE,
+        PAGE_TOKEN_ATTR_NONE
+    );
+
+    // TODO: Add more asserts
 
     page_destroy(page);
 }
