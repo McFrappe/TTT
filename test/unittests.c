@@ -108,6 +108,23 @@ void assert_parsed_page(
     }
 }
 
+void assert_parsed_page_tokens(page_t *page) {
+    page_token_t *value = page->tokens;
+
+    if (error_is_set()) {
+        printf(" %s - ", error_get_string());
+    }
+
+    if (!value) {
+        page_destroy(page);
+        error_reset();
+    }
+
+    // For verbosity
+    CU_ASSERT_FALSE(error_is_set());
+    CU_ASSERT_PTR_NOT_NULL_FATAL(value);
+}
+
 void assert_token(
     page_token_t **token,
     const char *expected_text,
@@ -121,9 +138,10 @@ void assert_token(
     CU_ASSERT_PTR_NOT_NULL_FATAL(current);
 
     if (
+        expected_text && (
         expected_type == PAGE_TOKEN_TEXT ||
         expected_type == PAGE_TOKEN_HEADER ||
-        expected_type == PAGE_TOKEN_LINK
+        expected_type == PAGE_TOKEN_LINK)
     ) {
         CU_ASSERT_PTR_NOT_NULL(current->text);
 
@@ -145,25 +163,39 @@ void assert_token(
     (*token) = (*token)->next;
 }
 
+void assert_token_end(page_token_t *cursor) {
+    // Make sure that there are no more tokens
+    CU_ASSERT_PTR_NULL(cursor);
+}
+
 void test_page_null_string() {
     CU_ASSERT_PTR_NULL(parser_get_page_collection(NULL, 0));
+    CU_ASSERT_TRUE(error_is_set());
+    error_reset();
 }
 
 void test_page_empty_string() {
     CU_ASSERT_PTR_NULL(parser_get_page_collection("", 0));
+    CU_ASSERT_TRUE(error_is_set());
+    error_reset();
 }
 
 void test_page_empty_array() {
     CU_ASSERT_PTR_NULL(parser_get_page_collection("[]", 2));
+    CU_ASSERT_TRUE(error_is_set());
+    error_reset();
 }
 
 void test_page_object_without_array() {
     CU_ASSERT_PTR_NULL(parser_get_page_collection("{}", 2));
+    CU_ASSERT_TRUE(error_is_set());
+    error_reset();
 }
 
 void test_page_empty_title() {
     char *str = "[{\"title\": \"\"}]";
     page_collection_t *collection = parser_get_page_collection(str, strlen(str));
+    CU_ASSERT_FALSE(error_is_set());
 
     assert_page_collection(collection, 1);
 
@@ -178,11 +210,13 @@ void test_page_empty_title() {
     );
 
     page_collection_destroy(collection);
+    error_reset();
 }
 
 void test_page_single_char_title() {
     char *str = "[{\"title\": \"x\"}]";
     page_collection_t *collection = parser_get_page_collection(str, strlen(str));
+    CU_ASSERT_FALSE(error_is_set());
 
     assert_page_collection(collection, 1);
 
@@ -197,11 +231,13 @@ void test_page_single_char_title() {
     );
 
     page_collection_destroy(collection);
+    error_reset();
 }
 
 void test_page_invalid_keys() {
     char *str = "[{\"invalid\": \"asd\", \"xxx\": 100, \"yyy\": [\"zzz\"]}]";
     page_collection_t *collection = parser_get_page_collection(str, strlen(str));
+    CU_ASSERT_FALSE(error_is_set());
 
     assert_page_collection(collection, 1);
 
@@ -216,12 +252,16 @@ void test_page_invalid_keys() {
     );
 
     page_collection_destroy(collection);
+    error_reset();
 }
 
 void test_page_large_content_array() {
     char *str = "[{\"content\": [\"xxx\", \"yyy\", \"zzz\"]}]";
     page_collection_t *collection = parser_get_page_collection(str, strlen(str));
 
+    // The content strings are invalid html and won't be parsed correctly
+    CU_ASSERT_TRUE(error_is_set());
+
     assert_page_collection(collection, 1);
     assert_parsed_page(
         collection->pages[0],
@@ -234,6 +274,7 @@ void test_page_large_content_array() {
     );
 
     page_collection_destroy(collection);
+    error_reset();
 }
 
 void test_page_invalid() {
@@ -242,6 +283,7 @@ void test_page_invalid() {
                  \"prev_page\":null,\"date_updated_unix\":null,\
                  \"permalink\":\"https://texttv.nu/0/-0\",\"id\":null}]";
     page_collection_t *collection = parser_get_page_collection(str, strlen(str));
+    CU_ASSERT_TRUE(error_is_set());
 
     assert_page_collection(collection, 1);
     assert_parsed_page(
@@ -255,47 +297,15 @@ void test_page_invalid() {
     );
 
     page_collection_destroy(collection);
+    error_reset();
 }
 
-void test_page_collection_resize() {
-    // The parser will read this as 6 possible pages, however 3 are strings
-    // and therefore will not be parsed as a page. This means that we should
-    // get a page collection of only 3 pages when parsed.
+void test_page_collection_empty_objects() {
     char *str = "[{}, {}, {}, \"xxx\", \"yyy\", \"zzz\"]";
     page_collection_t *collection = parser_get_page_collection(str, strlen(str));
-
-    assert_page_collection(collection, 3);
-    assert_parsed_page(
-        collection->pages[0],
-        -1,
-        -1,
-        -1,
-        -1,
-        NULL,
-        false
-    );
-
-    assert_parsed_page(
-        collection->pages[1],
-        -1,
-        -1,
-        -1,
-        -1,
-        NULL,
-        false
-    );
-
-    assert_parsed_page(
-        collection->pages[2],
-        -1,
-        -1,
-        -1,
-        -1,
-        NULL,
-        false
-    );
-
-    page_collection_destroy(collection);
+    CU_ASSERT_TRUE(error_is_set());
+    CU_ASSERT_PTR_NULL(collection);
+    error_reset();
 }
 
 // Validates the parsing of the file at JSON_DATA_PAGE_PATH
@@ -303,6 +313,8 @@ void test_page_single() {
     page_collection_t *collection = parser_get_page_collection(
         JSON_DATA_PAGE.data, JSON_DATA_PAGE.length
     );
+
+    CU_ASSERT_FALSE(error_is_set());
 
     assert_page_collection(collection, 1);
     assert_parsed_page(
@@ -316,6 +328,7 @@ void test_page_single() {
     );
 
     page_collection_destroy(collection);
+    error_reset();
 }
 
 // Validates the parsing of the file at JSON_DATA_PAGE_RANGE_PATH
@@ -377,6 +390,7 @@ void test_page_range() {
     );
 
     page_collection_destroy(collection);
+    error_reset();
 }
 
 // Validates the parsing of the file at JSON_DATA_PAGE_RANGE_PATH
@@ -384,6 +398,8 @@ void test_page_range_large() {
     page_collection_t *collection = parser_get_page_collection(
         JSON_DATA_PAGE_RANGE_LARGE.data, JSON_DATA_PAGE_RANGE_LARGE.length
     );
+
+    CU_ASSERT_FALSE(error_is_set());
 
     assert_page_collection(collection, 6);
 
@@ -448,6 +464,313 @@ void test_page_range_large() {
     );
 
     page_collection_destroy(collection);
+    error_reset();
+}
+
+void test_page_html_null() {
+    page_t *page = page_create_empty();
+    html_parser_get_page_tokens(page, "", 0);
+
+    CU_ASSERT_TRUE(error_is_set());
+    CU_ASSERT_PTR_NULL(page->tokens);
+
+    page_destroy(page);
+    error_reset();
+}
+
+void test_page_html_invalid_start_tag() {
+    const char *str = "<a href=\"/100\">100</a>";
+    page_t *page = page_create_empty();
+    html_parser_get_page_tokens(page, str, strlen(str));
+
+    CU_ASSERT_TRUE(error_is_set());
+    CU_ASSERT_PTR_NULL(page->tokens);
+
+    page_destroy(page);
+    error_reset();
+}
+
+void test_page_html_unexpected_end() {
+    const char *str = "<span class=\"bgB B\">100";
+    page_t *page = page_create_empty();
+    html_parser_get_page_tokens(page, str, strlen(str));
+
+    CU_ASSERT_TRUE(error_is_set());
+    CU_ASSERT_PTR_NULL(page->tokens);
+
+    page_destroy(page);
+    error_reset();
+}
+
+void test_page_html_empty_class() {
+    const char *str = "<span class=\"\">100</span>";
+    page_t *page = page_create_empty();
+    html_parser_get_page_tokens(page, str, strlen(str));
+
+    assert_parsed_page_tokens(page);
+
+    page_token_t *cursor = page->tokens;
+
+    assert_token(&cursor,
+        "100",
+        NO_HREF,
+        PAGE_TOKEN_TEXT,
+        PAGE_TOKEN_ATTR_BG_BLACK,
+        PAGE_TOKEN_ATTR_WHITE,
+        PAGE_TOKEN_ATTR_NONE
+    );
+
+    assert_token_end(cursor);
+
+    page_destroy(page);
+    error_reset();
+}
+
+void test_page_html_nested_a_tag() {
+    const char *str = "<span class=\"bgB B\"><a href=\"/100\">i am link</a></span>";
+    page_t *page = page_create_empty();
+    html_parser_get_page_tokens(page, str, strlen(str));
+
+    assert_parsed_page_tokens(page);
+
+    page_token_t *cursor = page->tokens;
+
+    assert_token(&cursor,
+        NULL,
+        NO_HREF,
+        PAGE_TOKEN_TEXT,
+        PAGE_TOKEN_ATTR_BG_BLUE,
+        PAGE_TOKEN_ATTR_BLUE,
+        PAGE_TOKEN_ATTR_NONE
+    );
+
+    assert_token(&cursor,
+        "i am link",
+        100,
+        PAGE_TOKEN_LINK,
+        PAGE_TOKEN_ATTR_BG_BLUE,
+        PAGE_TOKEN_ATTR_BLUE,
+        PAGE_TOKEN_ATTR_NONE
+    );
+
+    assert_token_end(cursor);
+
+    page_destroy(page);
+    error_reset();
+}
+
+void test_page_html_h1_tag() {
+    const char *str = "<h1 class=\"bgY B\">some title</h1>";
+    page_t *page = page_create_empty();
+    html_parser_get_page_tokens(page, str, strlen(str));
+
+    assert_parsed_page_tokens(page);
+
+    page_token_t *cursor = page->tokens;
+
+    assert_token(&cursor,
+        "some title",
+        NO_HREF,
+        PAGE_TOKEN_TEXT,
+        PAGE_TOKEN_ATTR_BG_YELLOW,
+        PAGE_TOKEN_ATTR_BLUE,
+        PAGE_TOKEN_ATTR_NONE
+    );
+
+    assert_token_end(cursor);
+
+    page_destroy(page);
+    error_reset();
+}
+
+void test_page_html_h1_tag_empty_class() {
+    const char *str = "<h1 class=\"\">some title</h1>";
+    page_t *page = page_create_empty();
+    html_parser_get_page_tokens(page, str, strlen(str));
+
+    assert_parsed_page_tokens(page);
+
+    page_token_t *cursor = page->tokens;
+
+    assert_token(&cursor,
+        "some title",
+        NO_HREF,
+        PAGE_TOKEN_TEXT,
+        PAGE_TOKEN_ATTR_BG_BLACK,
+        PAGE_TOKEN_ATTR_WHITE,
+        PAGE_TOKEN_ATTR_NONE
+    );
+
+    assert_token_end(cursor);
+
+    page_destroy(page);
+    error_reset();
+}
+
+void test_page_html_h1_tag_nested_a_tag() {
+    const char *str = "<h1 class=\"bgB B\"><a href=\"/100\">i am link</a></h1>";
+    page_t *page = page_create_empty();
+    html_parser_get_page_tokens(page, str, strlen(str));
+
+    assert_parsed_page_tokens(page);
+
+    page_token_t *cursor = page->tokens;
+
+    assert_token(&cursor,
+        NULL,
+        NO_HREF,
+        PAGE_TOKEN_TEXT,
+        PAGE_TOKEN_ATTR_BG_BLUE,
+        PAGE_TOKEN_ATTR_BLUE,
+        PAGE_TOKEN_ATTR_NONE
+    );
+
+    assert_token(&cursor,
+        "i am link",
+        100,
+        PAGE_TOKEN_LINK,
+        PAGE_TOKEN_ATTR_BG_BLUE,
+        PAGE_TOKEN_ATTR_BLUE,
+        PAGE_TOKEN_ATTR_NONE
+    );
+
+    assert_token_end(cursor);
+
+    page_destroy(page);
+    error_reset();
+}
+
+void test_page_html_bold_text() {
+    const char *str = "<span class=\"bgB B DH\">hello</span>";
+    page_t *page = page_create_empty();
+    html_parser_get_page_tokens(page, str, strlen(str));
+
+    assert_parsed_page_tokens(page);
+
+    page_token_t *cursor = page->tokens;
+
+    assert_token(&cursor,
+        "hello",
+        NO_HREF,
+        PAGE_TOKEN_TEXT,
+        PAGE_TOKEN_ATTR_BG_BLUE,
+        PAGE_TOKEN_ATTR_BLUE,
+        PAGE_TOKEN_ATTR_BOLD
+    );
+
+    assert_token_end(cursor);
+
+    page_destroy(page);
+    error_reset();
+}
+
+void test_page_html_newline_no_whitespace() {
+    const char *str = "<span class=\"bgB B\">hello\\n</span>";
+    page_t *page = page_create_empty();
+    html_parser_get_page_tokens(page, str, strlen(str));
+
+    assert_parsed_page_tokens(page);
+
+    page_token_t *cursor = page->tokens;
+
+    assert_token(&cursor,
+        "hello",
+        NO_HREF,
+        PAGE_TOKEN_TEXT,
+        PAGE_TOKEN_ATTR_BG_BLUE,
+        PAGE_TOKEN_ATTR_BLUE,
+        PAGE_TOKEN_ATTR_NONE
+    );
+
+    assert_token_end(cursor);
+
+    page_destroy(page);
+    error_reset();
+}
+
+void test_page_html_newline_whitespace() {
+    const char *str = "<span class=\"bgB B\">hello\\n \\n </span>";
+    page_t *page = page_create_empty();
+    html_parser_get_page_tokens(page, str, strlen(str));
+
+    assert_parsed_page_tokens(page);
+
+    page_token_t *cursor = page->tokens;
+
+    assert_token(&cursor,
+        "hello",
+        NO_HREF,
+        PAGE_TOKEN_TEXT,
+        PAGE_TOKEN_ATTR_BG_BLUE,
+        PAGE_TOKEN_ATTR_BLUE,
+        PAGE_TOKEN_ATTR_NONE
+    );
+
+    assert_token(&cursor,
+        " ",
+        NO_HREF,
+        PAGE_TOKEN_TEXT,
+        PAGE_TOKEN_ATTR_BG_BLUE,
+        PAGE_TOKEN_ATTR_BLUE,
+        PAGE_TOKEN_ATTR_NONE
+    );
+
+    assert_token(&cursor,
+        " ",
+        NO_HREF,
+        PAGE_TOKEN_TEXT,
+        PAGE_TOKEN_ATTR_BG_BLUE,
+        PAGE_TOKEN_ATTR_BLUE,
+        PAGE_TOKEN_ATTR_NONE
+    );
+
+    assert_token_end(cursor);
+
+    page_destroy(page);
+    error_reset();
+}
+
+void test_page_html_span_separator() {
+    const char *str = "<span class=\"bgB B\">hello</span>\\n <span class=\"bgB B\">hello2</span>";
+    page_t *page = page_create_empty();
+    html_parser_get_page_tokens(page, str, strlen(str));
+
+    assert_parsed_page_tokens(page);
+
+    page_token_t *cursor = page->tokens;
+
+    assert_token(&cursor,
+        "hello",
+        NO_HREF,
+        PAGE_TOKEN_TEXT,
+        PAGE_TOKEN_ATTR_BG_BLUE,
+        PAGE_TOKEN_ATTR_BLUE,
+        PAGE_TOKEN_ATTR_NONE
+    );
+
+    // Assert that the whitespace separator uses the default styling
+    assert_token(&cursor,
+        " ",
+        NO_HREF,
+        PAGE_TOKEN_TEXT,
+        PAGE_TOKEN_ATTR_BG_BLACK,
+        PAGE_TOKEN_ATTR_WHITE,
+        PAGE_TOKEN_ATTR_NONE
+    );
+
+    assert_token(&cursor,
+        "hello2",
+        NO_HREF,
+        PAGE_TOKEN_TEXT,
+        PAGE_TOKEN_ATTR_BG_BLUE,
+        PAGE_TOKEN_ATTR_BLUE,
+        PAGE_TOKEN_ATTR_NONE
+    );
+
+    assert_token_end(cursor);
+
+    page_destroy(page);
+    error_reset();
 }
 
 void test_page_html_1() {
@@ -455,8 +778,7 @@ void test_page_html_1() {
     html_parser_get_page_tokens(page, HTML_DATA_PAGE_1.data, HTML_DATA_PAGE_1.length);
     page_token_t *cursor = page->tokens;
 
-    CU_ASSERT_PTR_NOT_NULL_FATAL(cursor);
-    //page_print(page);
+    assert_parsed_page_tokens(page);
 
     assert_token(&cursor,
         " 700 SVT Text        Torsdag 28 jan 2021",
@@ -570,6 +892,7 @@ void test_page_html_1() {
     // TODO: Add more asserts
 
     page_destroy(page);
+    error_reset();
 }
 
 int main() {
@@ -595,12 +918,24 @@ int main() {
     CU_add_test(page_parser_suite, "test_page_invalid_keys", test_page_invalid_keys);
     CU_add_test(page_parser_suite, "test_page_object_without_array", test_page_object_without_array);
     CU_add_test(page_parser_suite, "test_page_invalid", test_page_invalid);
-    CU_add_test(page_parser_suite, "test_page_collection_resize", test_page_collection_resize);
+    CU_add_test(page_parser_suite, "test_page_collection_empty_objects", test_page_collection_empty_objects);
     CU_add_test(page_parser_suite, "test_page_large_content_array", test_page_large_content_array);
     CU_add_test(page_parser_suite, "test_page_single", test_page_single);
     CU_add_test(page_parser_suite, "test_page_range", test_page_range);
     CU_add_test(page_parser_suite, "test_page_range_large", test_page_range_large);
 
+    CU_add_test(html_parser_suite, "test_page_html_null", test_page_html_null);
+    CU_add_test(html_parser_suite, "test_page_html_invalid_start_tag", test_page_html_invalid_start_tag);
+    CU_add_test(html_parser_suite, "test_page_html_unexpected_end", test_page_html_unexpected_end);
+    CU_add_test(html_parser_suite, "test_page_html_empty_class", test_page_html_empty_class);
+    CU_add_test(html_parser_suite, "test_page_html_nested_a_tag", test_page_html_nested_a_tag);
+    CU_add_test(html_parser_suite, "test_page_html_h1_tag", test_page_html_h1_tag);
+    CU_add_test(html_parser_suite, "test_page_html_h1_tag_empty_class", test_page_html_h1_tag_empty_class);
+    CU_add_test(html_parser_suite, "test_page_html_h1_tag_nested_a_tag", test_page_html_h1_tag_nested_a_tag);
+    CU_add_test(html_parser_suite, "test_page_html_bold_text", test_page_html_bold_text);
+    CU_add_test(html_parser_suite, "test_page_html_newline_no_whitespace", test_page_html_newline_no_whitespace);
+    CU_add_test(html_parser_suite, "test_page_html_newline_whitespace", test_page_html_newline_whitespace);
+    CU_add_test(html_parser_suite, "test_page_html_span_separator", test_page_html_span_separator);
     CU_add_test(html_parser_suite, "test_page_html_1", test_page_html_1);
 
     CU_basic_set_mode(CU_BRM_VERBOSE);

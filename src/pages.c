@@ -45,9 +45,15 @@ page_collection_t *page_collection_create(size_t size) {
     return collection;
 }
 
-void page_token_append(page_t *page, page_token_t *token) {
+void page_token_append(page_t *page, page_token_t *token, bool inherit_style) {
     if (!page || !token) {
         return;
+    }
+
+    if (inherit_style) {
+        token->style.bg = page->last_token->style.bg;
+        token->style.fg = page->last_token->style.fg;
+        token->style.extra = page->last_token->style.extra;
     }
 
     if (page->last_token) {
@@ -57,15 +63,6 @@ void page_token_append(page_t *page, page_token_t *token) {
     }
 
     page->last_token = token;
-}
-
-void page_token_inherit_style(page_t *page, page_token_t *token) {
-    // use same style as previous token
-    if (page->last_token) {
-        token->style.bg = page->last_token->style.bg;
-        token->style.fg = page->last_token->style.fg;
-        token->style.extra = page->last_token->style.extra;
-    }
 }
 
 void page_collection_resize(page_collection_t *collection, size_t new_size) {
@@ -132,19 +129,30 @@ void page_collection_print(page_collection_t *collection) {
     }
 }
 
-void page_destroy(page_t *page) {
+void page_tokens_destroy(page_t *page) {
     if (page->tokens) {
         page_token_t *tmp;
         page_token_t *cursor = page->tokens;
 
         while (cursor != NULL) {
             tmp = cursor->next;
-            free(cursor->text);
+
+            if (cursor->text != NULL) {
+                free(cursor->text);
+            }
+
             free(cursor);
             cursor = tmp;
         }
     }
+}
 
+void page_destroy(page_t *page) {
+    if (!page) {
+        return;
+    }
+
+    page_tokens_destroy(page);
     free(page->title);
     free(page);
 }

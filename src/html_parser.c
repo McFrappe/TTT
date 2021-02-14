@@ -1,6 +1,7 @@
 #include "html_parser.h"
 
 #define MAX_TOKEN_TEXT_LENGTH       256
+#define MIN_HTML_CONTENT_LENGTH     7   // e.g. <a></a>
 #define NEW_LINE_SEQUENCE_LENGTH    2   // \n
 #define DIV_TAG_START_LENGTH        20  // <div class=\"root\"> = 20 chars
 #define DIV_TAG_END_LENGTH          9   // \n<\/div>
@@ -43,25 +44,27 @@ static void set_token_text(page_token_t *token, char *str, size_t length) {
 
 static void add_separator_token(page_t *page, char *str, size_t length, bool inherit_style) {
     page_token_t *token = page_token_create_empty();
-    page_token_append(page, token);
+    page_token_append(page, token, inherit_style);
     set_token_text(token, str, length);
-
-    if (inherit_style) {
-        page_token_inherit_style(page, token);
-    }
 }
 
 /// @brief Removes unnecessary backslashes and div-tag
-static bool clean_content_junk(char *buf, const char *html_content, size_t size) {
+static bool clean_html_content(char *buf, const char *html_content, size_t size) {
+    assert(buf != NULL);
+    assert(html_content != NULL);
+
+    int i = 0;
+    int end = size;
     int buf_position = 0;
 
-    // Make sure we dont read incorrectly or cause SIGSEGV
-    if (!html_content || size <= 26) {
-        return false;
+    // Check if the start is a div tag
+    if (html_content[0] == '<' && html_content[1] == 'd') {
+        i = DIV_TAG_START_LENGTH;
+        end = size - DIV_TAG_END_LENGTH;
     }
 
     // Skip first and last characters to remove div-tag
-    for (int i = DIV_TAG_START_LENGTH; i < (size - DIV_TAG_END_LENGTH); i++, buf_position++) {
+    for (; i < end; i++, buf_position++) {
         // Only remove backslashes that are not part of the newline escape sequence
         if (html_content[i] == '\\' && html_content[i + 1] != 'n') {
             // Move to next non-backslash character
@@ -87,8 +90,7 @@ static bool parse_a_tag(page_t *page, char **cursor) {
     }
 
     page_token_t *token = page_token_create_empty();
-    page_token_append(page, token);
-    page_token_inherit_style(page, token);
+    page_token_append(page, token, true);
 
     // Go to start of href id
     next_n_token(cursor, A_TAG_HREF_OFFSET);
@@ -113,6 +115,7 @@ static bool parse_a_tag(page_t *page, char **cursor) {
     }
 
     token->href = id;
+    token->type = PAGE_TOKEN_LINK;
 
     // Skip to end of opening tag
     while ((**cursor) != '>') {
@@ -175,6 +178,7 @@ static bool parse_whitespace(page_t *page, char **cursor, bool inherit_style) {
     return true;
 }
 
+// TODO: Some text will be in h1 tags instead of span for some reason
 static bool parse_span_tag(page_t *page, char **cursor) {
     if (!is_start_of_tag(cursor, 's')) {
         error_set_with_string(
@@ -186,7 +190,7 @@ static bool parse_span_tag(page_t *page, char **cursor) {
     }
 
     page_token_t *token = page_token_create_empty();
-    page_token_append(page, token);
+    page_token_append(page, token, false);
 
     // Move to first character in span class attribute
     next_n_token(cursor, SPAN_TAG_CLASS_OFFSET);
@@ -248,8 +252,15 @@ static bool parse_span_tag(page_t *page, char **cursor) {
     // Move to the end of the span-tag
     while ((*cursor)[0] != '\0') {
         if (is_newline(cursor)) {
-            // Save current token text before parsing the (possible) whitespace
-            set_token_text(token, text_buf, i);
+            if (i != 0) {
+                // Save current token text before parsing the (possible) whitespace
+                set_token_text(token, text_buf, i);
+
+                // Reset buf so that we do not try and save the token text again
+                // when we find the end of the span tag
+                i = 0;
+                text_buf[0] = '\0';
+            }
 
             // Move to next non-newline character
             next_n_token(cursor, NEW_LINE_SEQUENCE_LENGTH);
@@ -257,11 +268,6 @@ static bool parse_span_tag(page_t *page, char **cursor) {
             if (!parse_whitespace(page, cursor, true)) {
                 return false;
             }
-
-            // Reset buf so that we do not try and save the token text again
-            // when we find the end of the span tag
-            i = 0;
-            text_buf[0] = '\0';
         } else if (is_start_of_tag(cursor, 'a')) {
             if (!parse_a_tag(page, cursor)) {
                 return false;
@@ -272,7 +278,7 @@ static bool parse_span_tag(page_t *page, char **cursor) {
             }
 
             next_n_token(cursor, SPAN_TAG_END_LENGTH);
-            break;
+            return true;
         } else {
             text_buf[i] = **cursor;
             i++;
@@ -280,7 +286,10 @@ static bool parse_span_tag(page_t *page, char **cursor) {
         }
     }
 
-    return true;
+    // The loop only exits on '\0' which should never happen in this function.
+    // Instead, we handle it in the caller. This way we can differentiate between
+    // an unexpected and expected end to the HTML content.
+    return false;
 }
 
 void html_parser_get_page_tokens(page_t *page, const char *html, size_t size) {
@@ -291,18 +300,45 @@ void html_parser_get_page_tokens(page_t *page, const char *html, size_t size) {
         );
 
         return;
+    } else if (size < MIN_HTML_CONTENT_LENGTH) {
+        error_set_with_string(
+            TTT_ERROR_HTML_PARSER_FAILED,
+            "ERROR: Could not parse too short HTML page content"
+        );
+
+        return;
     }
 
     char buf[size];
     char *cursor = buf;
 
-    if (!clean_content_junk(buf, html, size)) {
+    if (!clean_html_content(buf, html, size)) {
         return;
     }
 
-    while (true) {
+    // The HTML content must start with a span or h1 tag
+    if (!is_start_of_tag(&cursor, 's') && !is_start_of_tag(&cursor, 'h')) {
+        error_set_with_string(
+            TTT_ERROR_HTML_PARSER_FAILED,
+            "ERROR: Invalid start tag in HTML content, expected <span> or <h1>"
+        );
+
+        return;
+    }
+
+    while ((*cursor) != '\0') {
         if (!parse_span_tag(page, &cursor)) {
-            break;
+            error_set_with_string(
+                TTT_ERROR_HTML_PARSER_FAILED,
+                "ERROR: Unexpected end to HTML content"
+            );
+
+            if (page->tokens) {
+                page_tokens_destroy(page);
+                page->tokens = NULL;
+            }
+
+            return;
         }
 
         parse_whitespace(page, &cursor, false);

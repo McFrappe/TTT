@@ -78,7 +78,7 @@ static size_t get_unsigned_numeric(const char *data, jsmntok_t *cursor, size_t m
 static void parse_content(page_t *page, const char *data, jsmntok_t **cursor) {
     if ((*cursor)->type != JSMN_ARRAY) {
         error_set_with_string(
-            TTT_ERROR_HTML_PARSER_FAILED,
+            TTT_ERROR_PAGE_PARSER_FAILED,
             "ERROR: Could not parse invalid page content data type"
         );
 
@@ -89,7 +89,7 @@ static void parse_content(page_t *page, const char *data, jsmntok_t **cursor) {
 
     if (array_size == 0) {
         error_set_with_string(
-            TTT_ERROR_HTML_PARSER_FAILED,
+            TTT_ERROR_PAGE_PARSER_FAILED,
             "ERROR: Could not parse empty page content array"
         );
 
@@ -107,9 +107,20 @@ static void parse_content(page_t *page, const char *data, jsmntok_t **cursor) {
 }
 
 static page_t *get_page(const char *data, jsmntok_t **cursor) {
-    page_t *page = page_create_empty();
     char *key = NULL;
     size_t keys = (*cursor)->size;
+
+    // We need a minimum of 1 key to have a non-empty page object
+    if (keys < 1) {
+        error_set_with_string(
+            TTT_ERROR_PAGE_PARSER_FAILED,
+            "ERROR: Could not parse empty page object"
+        );
+
+        return NULL;
+    }
+
+    page_t *page = page_create_empty();
 
     for (size_t i = 0; i < keys; i++) {
         next_token(cursor);
@@ -141,7 +152,7 @@ static page_t *get_page(const char *data, jsmntok_t **cursor) {
 }
 
 page_collection_t *parser_get_page_collection(const char *data, size_t size) {
-    if (!data || size == 0) {
+    if (!data || *data == '\0' || size == 0) {
         error_set_with_string(
             TTT_ERROR_PAGE_PARSER_FAILED,
             "ERROR: Could not parse empty response data"
@@ -186,6 +197,9 @@ page_collection_t *parser_get_page_collection(const char *data, size_t size) {
                 TTT_ERROR_PAGE_PARSER_FAILED,
                 "ERROR: No pages could be parsed"
             );
+
+            page_collection_destroy(collection);
+            return NULL;
         }
 
         page_collection_resize(collection, parsed_objects);
