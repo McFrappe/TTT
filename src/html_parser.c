@@ -12,6 +12,7 @@
 #define HREF_PAGE_ID_LENGTH         3   // e.g. 100
 #define HEADER_TAG_CLASS_OFFSET     11  // <h1 class="
 #define HEADER_TAG_END_LENGTH       5   // </h1>
+#define UNICODE_ESCAPE_SEQUENCE_LENGTH 6 // e.g. \u00f6
 
 static void next_token(char **cursor) {
     (*cursor) += 1;
@@ -66,8 +67,16 @@ static bool clean_html_content(char *buf, const char *html_content, size_t size)
 
     // Skip first and last characters to remove div-tag
     for (; i < end; i++, buf_position++) {
+        printf("string: %s\n", html_content);
         // Only remove backslashes that are not part of the newline escape sequence
         if (html_content[i] == '\\' && html_content[i + 1] != 'n') {
+            // TODO: Readd the unicode escape sequence code here
+            if (html_content[i + 1] == 'u') {
+                i += UNICODE_ESCAPE_SEQUENCE_LENGTH - 1;
+                buf[buf_position] = 'x';
+                buf_position++;
+            }
+
             // Move to next non-backslash character
             i++;
         }
@@ -92,7 +101,7 @@ static bool parse_a_tag(page_t *page, char **cursor) {
     page_token_append(page, token, true);
     // Go to start of href id
     next_n_token(cursor, A_TAG_HREF_OFFSET);
-    char id_buf[HREF_PAGE_ID_LENGTH];
+    char id_buf[HREF_PAGE_ID_LENGTH + 1];
 
     // Assume that each link will only contain page ids with length HREF_PAGE_ID_LENGTH
     for (int i = 0; i < HREF_PAGE_ID_LENGTH; i++) {
@@ -203,7 +212,7 @@ static bool parse_span_tag(page_t *page, char **cursor) {
 
     // Extract each classname, separated by a space
     while (**cursor != '>') {
-        if (**cursor == ' ' || **cursor == '"') {
+        if (**cursor == ' ' || **cursor == '"' || **cursor == '\'') {
             // We have a complete classname in text_buf, add token attribute
             if (strncmp(text_buf, "toprow", 6) == 0) {
                 token->type = PAGE_TOKEN_HEADER;
@@ -268,9 +277,20 @@ static bool parse_span_tag(page_t *page, char **cursor) {
                 return false;
             }
         } else if (is_start_of_tag(cursor, 'a')) {
+            if (i != 0) {
+                set_token_text(token, text_buf, i);
+                i = 0;
+                text_buf[0] = '\0';
+            }
+
             if (!parse_a_tag(page, cursor)) {
                 return false;
             }
+
+            // TODO: This will create an extra empty token if the a tag
+            //       is the last inner text of the span or header tag
+            token = page_token_create_empty();
+            page_token_append(page, token, true);
         } else if ((is_span && is_end_of_tag(cursor, 's')) || (is_header && is_end_of_tag(cursor, 'h'))) {
             if (i != 0) {
                 set_token_text(token, text_buf, i);

@@ -143,12 +143,39 @@ void draw_main(WINDOW *win, page_t *page) {
         draw_error(win);
     }
 
-    if (!page) {
+    if (!page || !page->tokens) {
         draw_empty_page(win);
         return;
     }
 
-    // TODO: Render page
+    page_token_t *cursor = page->tokens;
+    wmove(win, 0, 0);
+
+    while (cursor) {
+        attr_t style = COLOR_PAIR(COLORSCHEME_DEFAULT);
+
+        if (cursor->style.bg == PAGE_TOKEN_ATTR_BG_BLUE) {
+            style = COLOR_PAIR(COLORSCHEME_YBL);
+        }
+
+        if (cursor->style.extra != -1) {
+            style |= A_BOLD;
+        }
+
+        if (cursor->type == PAGE_TOKEN_LINK) {
+            style |= A_UNDERLINE;
+        }
+
+        wattron(win, style);
+
+        if (cursor->text) {
+            wprintw(win, cursor->text);
+        }
+
+        wattroff(win, style);
+
+        cursor = cursor->next;
+    }
 }
 
 void draw(WINDOW *win, view_t view, page_t *page) {

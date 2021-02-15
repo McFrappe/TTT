@@ -33,11 +33,7 @@ static void set_page(uint16_t page) {
         page_collection_destroy(current_collection);
     }
 
-    //current_collection = api_get_page(page);
-    current_collection = page_collection_create(1);
-    current_collection->pages[0] = page_create_empty();
-    current_collection->pages[0]->id = 100;
-    current_collection->pages[0]->title = strdup("Test page title");
+    current_collection = api_get_page(page);
     // TODO: set the current page and current_page_index accordingly
     current_page_index = 0;
     current_page = current_collection->pages[0];
