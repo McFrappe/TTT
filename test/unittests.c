@@ -732,6 +732,84 @@ void test_page_html_newline_whitespace() {
     error_reset();
 }
 
+void test_page_html_a_tag_range() {
+    // This test only makes sure that it can handle href's that are longer
+    // that 4 characters. The range is not really important, since you
+    // will always go the first page either way.
+    const char *str = "<span class=\"Y\"><a href=\"/106-107\">106-107</a>some text</span>";
+    page_t *page = page_create_empty();
+    html_parser_get_page_tokens(page, str, strlen(str));
+
+    assert_parsed_page_tokens(page);
+
+    page_token_t *cursor = page->tokens;
+
+    assert_token(&cursor,
+        NULL,
+        NO_HREF,
+        PAGE_TOKEN_TEXT,
+        PAGE_TOKEN_ATTR_BG_BLACK,
+        PAGE_TOKEN_ATTR_YELLOW,
+        PAGE_TOKEN_ATTR_NONE
+    );
+
+    assert_token(&cursor,
+        "106-107",
+        106,
+        PAGE_TOKEN_LINK,
+        PAGE_TOKEN_ATTR_BG_BLACK,
+        PAGE_TOKEN_ATTR_YELLOW,
+        PAGE_TOKEN_ATTR_NONE
+    );
+
+    assert_token(&cursor,
+        "some text",
+        NO_HREF,
+        PAGE_TOKEN_TEXT,
+        PAGE_TOKEN_ATTR_BG_BLACK,
+        PAGE_TOKEN_ATTR_YELLOW,
+        PAGE_TOKEN_ATTR_NONE
+    );
+
+    assert_token_end(cursor);
+
+    page_destroy(page);
+    error_reset();
+}
+
+void test_page_html_nested_span_tag() {
+    const char *str = "<span class=\"Y\"> <span class=\"Y\"><a href=\"/106\">106</a></span>";
+    page_t *page = page_create_empty();
+    html_parser_get_page_tokens(page, str, strlen(str));
+
+    assert_parsed_page_tokens(page);
+
+    page_token_t *cursor = page->tokens;
+
+    assert_token(&cursor,
+        " ",
+        NO_HREF,
+        PAGE_TOKEN_TEXT,
+        PAGE_TOKEN_ATTR_BG_BLACK,
+        PAGE_TOKEN_ATTR_YELLOW,
+        PAGE_TOKEN_ATTR_NONE
+    );
+
+    assert_token(&cursor,
+        "106",
+        106,
+        PAGE_TOKEN_LINK,
+        PAGE_TOKEN_ATTR_BG_BLACK,
+        PAGE_TOKEN_ATTR_YELLOW,
+        PAGE_TOKEN_ATTR_NONE
+    );
+
+    assert_token_end(cursor);
+
+    page_destroy(page);
+    error_reset();
+}
+
 void test_page_html_span_separator() {
     const char *str = "<span class=\"bgB B\">hello</span>\\n <span class=\"bgB B\">hello2</span>";
     page_t *page = page_create_empty();
@@ -897,56 +975,6 @@ void test_page_html_1() {
     error_reset();
 }
 
-void test_page_html_2() {
-    page_t *page = page_create_empty();
-    html_parser_get_page_tokens(page, HTML_DATA_PAGE_2.data, HTML_DATA_PAGE_2.length);
-    page_token_t *cursor = page->tokens;
-
-    assert_parsed_page_tokens(page);
-
-    assert_token(&cursor,
-        " 100 SVT Text         Mandag 15 feb 2021",
-        NO_HREF,
-        PAGE_TOKEN_HEADER,
-        PAGE_TOKEN_ATTR_BG_BLACK,
-        PAGE_TOKEN_ATTR_WHITE,
-        PAGE_TOKEN_ATTR_NONE
-    );
-
-    assert_token(
-        &cursor,
-        " ",
-        NO_HREF,
-        PAGE_TOKEN_TEXT,
-        PAGE_TOKEN_ATTR_BG_BLACK,
-        PAGE_TOKEN_ATTR_WHITE,
-        PAGE_TOKEN_ATTR_NONE
-    );
-
-    assert_token(
-        &cursor,
-        " ",
-        NO_HREF,
-        PAGE_TOKEN_TEXT,
-        PAGE_TOKEN_ATTR_BG_BLUE,
-        PAGE_TOKEN_ATTR_BLUE,
-        PAGE_TOKEN_ATTR_NONE
-    );
-
-    assert_token(
-        &cursor,
-        "                                      ",
-        NO_HREF,
-        PAGE_TOKEN_TEXT,
-        PAGE_TOKEN_ATTR_BG_BLUE,
-        PAGE_TOKEN_ATTR_BLUE,
-        PAGE_TOKEN_ATTR_NONE
-    );
-
-    page_destroy(page);
-    error_reset();
-}
-
 int main() {
     if (
         !load_test_data(&JSON_DATA_PAGE, JSON_DATA_PAGE_PATH) ||
@@ -982,6 +1010,7 @@ int main() {
     CU_add_test(html_parser_suite, "test_page_html_unexpected_end", test_page_html_unexpected_end);
     CU_add_test(html_parser_suite, "test_page_html_empty_class", test_page_html_empty_class);
     CU_add_test(html_parser_suite, "test_page_html_nested_a_tag", test_page_html_nested_a_tag);
+    CU_add_test(html_parser_suite, "test_page_html_a_tag_range", test_page_html_a_tag_range);
     CU_add_test(html_parser_suite, "test_page_html_h1_tag", test_page_html_h1_tag);
     CU_add_test(html_parser_suite, "test_page_html_h1_tag_empty_class", test_page_html_h1_tag_empty_class);
     CU_add_test(html_parser_suite, "test_page_html_h1_tag_nested_a_tag", test_page_html_h1_tag_nested_a_tag);
@@ -989,8 +1018,8 @@ int main() {
     CU_add_test(html_parser_suite, "test_page_html_newline_no_whitespace", test_page_html_newline_no_whitespace);
     CU_add_test(html_parser_suite, "test_page_html_newline_whitespace", test_page_html_newline_whitespace);
     CU_add_test(html_parser_suite, "test_page_html_span_separator", test_page_html_span_separator);
+    CU_add_test(html_parser_suite, "test_page_html_nested_span_tag", test_page_html_nested_span_tag);
     CU_add_test(html_parser_suite, "test_page_html_1", test_page_html_1);
-    CU_add_test(html_parser_suite, "test_page_html_2", test_page_html_2);
 
     CU_basic_set_mode(CU_BRM_VERBOSE);
     CU_basic_run_tests();

@@ -57,9 +57,9 @@ static void save_current_text_to_token(page_t *page, page_token_t *token, char *
 
         (*i) = 0;
         buf[0] = '\0';
-
-        *create_new = true;
     }
+
+    (*create_new) = true;
 }
 
 static void add_separator_token(page_t *page, char *str, size_t length, bool inherit_style) {
@@ -300,7 +300,7 @@ static bool parse_span_tag(page_t *page, char **cursor) {
     bool should_create_new_token = false;
 
     // Move to the end of the span-tag
-    while ((*cursor)[0] != '\0') {
+    while (**cursor != '\0') {
         if (is_newline(cursor)) {
             save_current_text_to_token(page, token, text_buf, &i, &should_create_new_token);
 
@@ -326,6 +326,16 @@ static bool parse_span_tag(page_t *page, char **cursor) {
             }
 
             return true;
+        } else if (is_start_of_tag(cursor, 's')) {
+            // For some reason, there might be a random span inside another span
+            // that does not even close (?). Dont know what the fuck that is about.
+            // You can see a full example of this in 'test/data/nested_span.html'
+            while (**cursor != '>') {
+                next_token(cursor);
+            }
+
+            // Go to first non-tag character
+            next_token(cursor);
         } else {
             text_buf[i] = **cursor;
             i++;
