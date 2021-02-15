@@ -152,11 +152,7 @@ void draw_main(WINDOW *win, page_t *page) {
     wmove(win, 0, 0);
 
     while (cursor) {
-        attr_t style = COLOR_PAIR(COLORSCHEME_DEFAULT);
-
-        if (cursor->style.bg == PAGE_TOKEN_ATTR_BG_BLUE) {
-            style = COLOR_PAIR(COLORSCHEME_YBL);
-        }
+        attr_t style = colors_get_color_pair_from_style(cursor->style);
 
         if (cursor->style.extra != -1) {
             style |= A_BOLD;

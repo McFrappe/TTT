@@ -1,6 +1,8 @@
 #pragma once
 #include <curses.h>
 
+#include "pages.h"
+
 // Color pair 0 is reserved for the system:
 // https://linux.die.net/man/3/color_pair
 typedef enum colorschemes {
@@ -11,7 +13,9 @@ typedef enum colorschemes {
     COLORSCHEME_BLY,        // BLUE-YELLOW
     COLORSCHEME_YBL,        // YELLOW-BLUE
     COLORSCHEME_YX,         // YELLOW-DEFAULT
-    // TODO: Add colorscheme for each colorscheme in response (docs/parser/html.md)
+    COLORSCHEME_CX,         // CYAN-DEFAULT
+    COLORSCHEME_WR,         // WHITE-RED
 } colorschemes_t;
 
 void colors_initialize();
+attr_t colors_get_color_pair_from_style(page_token_style_t style);

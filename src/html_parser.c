@@ -67,7 +67,6 @@ static bool clean_html_content(char *buf, const char *html_content, size_t size)
 
     // Skip first and last characters to remove div-tag
     for (; i < end; i++, buf_position++) {
-        printf("string: %s\n", html_content);
         // Only remove backslashes that are not part of the newline escape sequence
         if (html_content[i] == '\\' && html_content[i + 1] != 'n') {
             // TODO: Readd the unicode escape sequence code here
