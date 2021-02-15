@@ -10,6 +10,8 @@
 #define A_TAG_HREF_OFFSET           10  // <a href="/
 #define A_TAG_END_LENGTH            4   // </a>
 #define HREF_PAGE_ID_LENGTH         3   // e.g. 100
+#define HEADER_TAG_CLASS_OFFSET     11  // <h1 class="
+#define HEADER_TAG_END_LENGTH       5   // </h1>
 
 static void next_token(char **cursor) {
     (*cursor) += 1;
@@ -102,6 +104,8 @@ static bool parse_a_tag(page_t *page, char **cursor) {
         id_buf[i] = **cursor;
         next_token(cursor);
     }
+    
+    id_buf[HREF_PAGE_ID_LENGTH] = '\0';
 
     int id = atoi(id_buf);
 
@@ -180,10 +184,13 @@ static bool parse_whitespace(page_t *page, char **cursor, bool inherit_style) {
 
 // TODO: Some text will be in h1 tags instead of span for some reason
 static bool parse_span_tag(page_t *page, char **cursor) {
-    if (!is_start_of_tag(cursor, 's')) {
+    bool is_span = is_start_of_tag(cursor, 's');
+    bool is_header = is_start_of_tag(cursor, 'h');
+    
+    if (!is_span && !is_header) {
         error_set_with_string(
             TTT_ERROR_HTML_PARSER_FAILED,
-            "ERROR: Invalid HTML content string, expected span tag"
+            "ERROR: Invalid HTML content string, expected <span> or <h1> tag"
         );
 
         return false;
@@ -192,8 +199,12 @@ static bool parse_span_tag(page_t *page, char **cursor) {
     page_token_t *token = page_token_create_empty();
     page_token_append(page, token, false);
 
-    // Move to first character in span class attribute
-    next_n_token(cursor, SPAN_TAG_CLASS_OFFSET);
+    // Move to first character in class attribute
+    if (is_span) {
+        next_n_token(cursor, SPAN_TAG_CLASS_OFFSET);
+    } else {
+        next_n_token(cursor, HEADER_TAG_CLASS_OFFSET);
+    }
 
     int i = 0;
     char text_buf[MAX_TOKEN_TEXT_LENGTH];
@@ -272,12 +283,17 @@ static bool parse_span_tag(page_t *page, char **cursor) {
             if (!parse_a_tag(page, cursor)) {
                 return false;
             }
-        } else if (is_end_of_tag(cursor, 's')) {
+        } else if ((is_span && is_end_of_tag(cursor, 's')) || (is_header && is_end_of_tag(cursor, 'h'))) {
             if (i != 0) {
                 set_token_text(token, text_buf, i);
             }
-
-            next_n_token(cursor, SPAN_TAG_END_LENGTH);
+            
+            if (is_span) {
+                next_n_token(cursor, SPAN_TAG_END_LENGTH);
+            } else {
+                next_n_token(cursor, HEADER_TAG_END_LENGTH);
+            }
+            
             return true;
         } else {
             text_buf[i] = **cursor;
@@ -285,6 +301,11 @@ static bool parse_span_tag(page_t *page, char **cursor) {
             next_token(cursor);
         }
     }
+
+    error_set_with_string(
+        TTT_ERROR_HTML_PARSER_FAILED,
+        "ERROR: Unexpected end to HTML content"
+    );
 
     // The loop only exits on '\0' which should never happen in this function.
     // Instead, we handle it in the caller. This way we can differentiate between
@@ -328,11 +349,6 @@ void html_parser_get_page_tokens(page_t *page, const char *html, size_t size) {
 
     while ((*cursor) != '\0') {
         if (!parse_span_tag(page, &cursor)) {
-            error_set_with_string(
-                TTT_ERROR_HTML_PARSER_FAILED,
-                "ERROR: Unexpected end to HTML content"
-            );
-
             if (page->tokens) {
                 page_tokens_destroy(page);
                 page->tokens = NULL;
