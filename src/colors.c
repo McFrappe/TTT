@@ -21,23 +21,25 @@ void colors_initialize() {
 }
 
 attr_t colors_get_color_pair_from_style(page_token_style_t style) {
-    if (style.fg == PAGE_TOKEN_ATTR_CYAN && style.bg == PAGE_TOKEN_ATTR_BG_BLACK) {
+    if (
+        (style.fg == PAGE_TOKEN_ATTR_YELLOW && style.bg == PAGE_TOKEN_ATTR_BG_YELLOW) ||
+        (style.fg == PAGE_TOKEN_ATTR_BLUE && style.bg == PAGE_TOKEN_ATTR_BG_YELLOW)
+    ) {
+        return COLOR_PAIR(COLORSCHEME_BLY);
+    } else if (
+        (style.fg == PAGE_TOKEN_ATTR_BLUE || style.fg == PAGE_TOKEN_ATTR_YELLOW) &&
+        (style.bg == PAGE_TOKEN_ATTR_BG_BLUE)
+    ) {
+        return COLOR_PAIR(COLORSCHEME_YBL);
+    } else if (style.fg == PAGE_TOKEN_ATTR_CYAN && style.bg == PAGE_TOKEN_ATTR_BG_BLACK) {
         return COLOR_PAIR(COLORSCHEME_CX);
     } else if (style.fg == PAGE_TOKEN_ATTR_YELLOW && style.bg == PAGE_TOKEN_ATTR_BG_BLACK) {
         return COLOR_PAIR(COLORSCHEME_YX);
-    } else if (
-        (style.fg == PAGE_TOKEN_ATTR_BLUE || style.fg == PAGE_TOKEN_ATTR_YELLOW) &&
-        style.bg == PAGE_TOKEN_ATTR_BG_BLUE
-    ) {
-        return COLOR_PAIR(COLORSCHEME_YBL);
     } else if (style.fg == PAGE_TOKEN_ATTR_WHITE && style.bg == PAGE_TOKEN_ATTR_BG_BLUE) {
         return COLOR_PAIR(COLORSCHEME_WBL);
-    } else if (style.fg == PAGE_TOKEN_ATTR_YELLOW && style.bg == PAGE_TOKEN_ATTR_BG_YELLOW) {
-        return COLOR_PAIR(COLORSCHEME_BLY);
     } else if (style.fg == PAGE_TOKEN_ATTR_RED && style.bg == PAGE_TOKEN_ATTR_BG_RED) {
         return COLOR_PAIR(COLORSCHEME_WR);
     } else {
-        // default
         return COLOR_PAIR(COLORSCHEME_DEFAULT);
     }
 }

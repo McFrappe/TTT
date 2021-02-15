@@ -252,34 +252,37 @@ static bool parse_span_tag(page_t *page, char **cursor) {
     // Extract each classname, separated by a space
     while (**cursor != '>') {
         if (**cursor == ' ' || **cursor == '"' || **cursor == '\'') {
+            // Terminate buffer to prevent overflow in strcmp
+            text_buf[i] = '\0';
+
             // We have a complete classname in text_buf, add token attribute
-            if (strncmp(text_buf, "toprow", 6) == 0) {
+            if (strcmp(text_buf, "toprow") == 0) {
                 token->type = PAGE_TOKEN_HEADER;
-            } else if (strncmp(text_buf, "DH", 2) == 0) {
+            } else if (strcmp(text_buf, "DH") == 0) {
                 token->style.extra = PAGE_TOKEN_ATTR_BOLD;
-            } else if (strncmp(text_buf, "B", 1) == 0) {
+            } else if (strcmp(text_buf, "B") == 0) {
                 token->style.fg = PAGE_TOKEN_ATTR_BLUE;
-            } else if (strncmp(text_buf, "C", 1) == 0) {
+            } else if (strcmp(text_buf, "C") == 0) {
                 token->style.fg = PAGE_TOKEN_ATTR_CYAN;
-            } else if (strncmp(text_buf, "W", 1) == 0) {
+            } else if (strcmp(text_buf, "W") == 0) {
                 token->style.fg = PAGE_TOKEN_ATTR_WHITE;
-            } else if (strncmp(text_buf, "G", 1) == 0) {
+            } else if (strcmp(text_buf, "G") == 0) {
                 token->style.fg = PAGE_TOKEN_ATTR_GREEN;
-            } else if (strncmp(text_buf, "Y", 1) == 0) {
+            } else if (strcmp(text_buf, "Y") == 0) {
                 token->style.fg = PAGE_TOKEN_ATTR_YELLOW;
-            } else if (strncmp(text_buf, "R", 1) == 0) {
+            } else if (strcmp(text_buf, "R") == 0) {
                 token->style.fg = PAGE_TOKEN_ATTR_RED;
-            } else if (strncmp(text_buf, "bgB", 3) == 0) {
+            } else if (strcmp(text_buf, "bgB") == 0) {
                 token->style.bg = PAGE_TOKEN_ATTR_BG_BLUE;
-            } else if (strncmp(text_buf, "bgC", 3) == 0) {
+            } else if (strcmp(text_buf, "bgC") == 0) {
                 token->style.bg = PAGE_TOKEN_ATTR_BG_CYAN;
-            } else if (strncmp(text_buf, "bgW", 3) == 0) {
+            } else if (strcmp(text_buf, "bgW") == 0) {
                 token->style.bg = PAGE_TOKEN_ATTR_BG_WHITE;
-            } else if (strncmp(text_buf, "bgG", 3) == 0) {
+            } else if (strcmp(text_buf, "bgG") == 0) {
                 token->style.bg = PAGE_TOKEN_ATTR_BG_GREEN;
-            } else if (strncmp(text_buf, "bgY", 3) == 0) {
+            } else if (strcmp(text_buf, "bgY") == 0) {
                 token->style.bg = PAGE_TOKEN_ATTR_BG_YELLOW;
-            } else if (strncmp(text_buf, "bgR", 3) == 0) {
+            } else if (strcmp(text_buf, "bgR") == 0) {
                 token->style.bg = PAGE_TOKEN_ATTR_BG_RED;
             }
 
