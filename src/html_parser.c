@@ -54,7 +54,6 @@ static void add_separator_token(page_t *page, char *str, size_t length, bool inh
 static bool clean_html_content(char *buf, const char *html_content, size_t size) {
     assert(buf != NULL);
     assert(html_content != NULL);
-
     int i = 0;
     int end = size;
     int buf_position = 0;
@@ -77,7 +76,6 @@ static bool clean_html_content(char *buf, const char *html_content, size_t size)
     }
 
     buf[buf_position] = '\0';
-
     return true;
 }
 
@@ -87,16 +85,13 @@ static bool parse_a_tag(page_t *page, char **cursor) {
             TTT_ERROR_HTML_PARSER_FAILED,
             "ERROR: Invalid HTML content string, expected a tag"
         );
-
         return false;
     }
 
     page_token_t *token = page_token_create_empty();
     page_token_append(page, token, true);
-
     // Go to start of href id
     next_n_token(cursor, A_TAG_HREF_OFFSET);
-
     char id_buf[HREF_PAGE_ID_LENGTH];
 
     // Assume that each link will only contain page ids with length HREF_PAGE_ID_LENGTH
@@ -104,9 +99,8 @@ static bool parse_a_tag(page_t *page, char **cursor) {
         id_buf[i] = **cursor;
         next_token(cursor);
     }
-    
-    id_buf[HREF_PAGE_ID_LENGTH] = '\0';
 
+    id_buf[HREF_PAGE_ID_LENGTH] = '\0';
     int id = atoi(id_buf);
 
     if (id == -1) {
@@ -114,7 +108,6 @@ static bool parse_a_tag(page_t *page, char **cursor) {
             TTT_ERROR_HTML_PARSER_FAILED,
             "ERROR: Could not convert link href to page id"
         );
-
         return false;
     }
 
@@ -128,7 +121,6 @@ static bool parse_a_tag(page_t *page, char **cursor) {
 
     // Go to first character inside tag
     next_token(cursor);
-
     // Extract link text
     int length = 0;
     char *text_start = *cursor;
@@ -145,7 +137,6 @@ static bool parse_a_tag(page_t *page, char **cursor) {
 
     // Go to the character after the a tag
     next_n_token(cursor, A_TAG_END_LENGTH);
-
     return true;
 }
 
@@ -186,13 +177,12 @@ static bool parse_whitespace(page_t *page, char **cursor, bool inherit_style) {
 static bool parse_span_tag(page_t *page, char **cursor) {
     bool is_span = is_start_of_tag(cursor, 's');
     bool is_header = is_start_of_tag(cursor, 'h');
-    
+
     if (!is_span && !is_header) {
         error_set_with_string(
             TTT_ERROR_HTML_PARSER_FAILED,
             "ERROR: Invalid HTML content string, expected <span> or <h1> tag"
         );
-
         return false;
     }
 
@@ -208,7 +198,6 @@ static bool parse_span_tag(page_t *page, char **cursor) {
 
     int i = 0;
     char text_buf[MAX_TOKEN_TEXT_LENGTH];
-
     // Initialize buffer to prevent error if the HTML format is invalid
     text_buf[0] = '\0';
 
@@ -266,7 +255,6 @@ static bool parse_span_tag(page_t *page, char **cursor) {
             if (i != 0) {
                 // Save current token text before parsing the (possible) whitespace
                 set_token_text(token, text_buf, i);
-
                 // Reset buf so that we do not try and save the token text again
                 // when we find the end of the span tag
                 i = 0;
@@ -287,13 +275,13 @@ static bool parse_span_tag(page_t *page, char **cursor) {
             if (i != 0) {
                 set_token_text(token, text_buf, i);
             }
-            
+
             if (is_span) {
                 next_n_token(cursor, SPAN_TAG_END_LENGTH);
             } else {
                 next_n_token(cursor, HEADER_TAG_END_LENGTH);
             }
-            
+
             return true;
         } else {
             text_buf[i] = **cursor;
@@ -306,7 +294,6 @@ static bool parse_span_tag(page_t *page, char **cursor) {
         TTT_ERROR_HTML_PARSER_FAILED,
         "ERROR: Unexpected end to HTML content"
     );
-
     // The loop only exits on '\0' which should never happen in this function.
     // Instead, we handle it in the caller. This way we can differentiate between
     // an unexpected and expected end to the HTML content.
@@ -319,14 +306,12 @@ void html_parser_get_page_tokens(page_t *page, const char *html, size_t size) {
             TTT_ERROR_HTML_PARSER_FAILED,
             "ERROR: Could not parse empty HTML page content"
         );
-
         return;
     } else if (size < MIN_HTML_CONTENT_LENGTH) {
         error_set_with_string(
             TTT_ERROR_HTML_PARSER_FAILED,
             "ERROR: Could not parse too short HTML page content"
         );
-
         return;
     }
 
@@ -343,7 +328,6 @@ void html_parser_get_page_tokens(page_t *page, const char *html, size_t size) {
             TTT_ERROR_HTML_PARSER_FAILED,
             "ERROR: Invalid start tag in HTML content, expected <span> or <h1>"
         );
-
         return;
     }
 

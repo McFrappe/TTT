@@ -23,12 +23,10 @@ page_t *page_create_empty() {
 
 page_token_t *page_token_create_empty() {
     page_token_t *token = calloc(1, sizeof(page_token_t));
-
     token->type = PAGE_TOKEN_TEXT;
     token->style.fg = PAGE_TOKEN_ATTR_WHITE,
-    token->style.bg = PAGE_TOKEN_ATTR_BG_BLACK;
+           token->style.bg = PAGE_TOKEN_ATTR_BG_BLACK;
     token->style.extra = PAGE_TOKEN_ATTR_NONE;
-
     return token;
 }
 

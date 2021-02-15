@@ -81,7 +81,6 @@ static void parse_content(page_t *page, const char *data, jsmntok_t **cursor) {
             TTT_ERROR_PAGE_PARSER_FAILED,
             "ERROR: Could not parse invalid page content data type"
         );
-
         return;
     }
 
@@ -92,7 +91,6 @@ static void parse_content(page_t *page, const char *data, jsmntok_t **cursor) {
             TTT_ERROR_PAGE_PARSER_FAILED,
             "ERROR: Could not parse empty page content array"
         );
-
         return;
     }
 
@@ -116,7 +114,6 @@ static page_t *get_page(const char *data, jsmntok_t **cursor) {
             TTT_ERROR_PAGE_PARSER_FAILED,
             "ERROR: Could not parse empty page object"
         );
-
         return NULL;
     }
 
@@ -197,7 +194,6 @@ page_collection_t *parser_get_page_collection(const char *data, size_t size) {
                 TTT_ERROR_PAGE_PARSER_FAILED,
                 "ERROR: No pages could be parsed"
             );
-
             page_collection_destroy(collection);
             return NULL;
         }
