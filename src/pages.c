@@ -6,7 +6,8 @@ static page_t empty_page = {
     .next_id = -1,
     .unix_date = -1,
     .title = NULL,
-    .tokens = NULL
+    .tokens = NULL,
+    .last_token = NULL
 };
 
 page_t *page_create_empty() {
@@ -20,6 +21,15 @@ page_t *page_create_empty() {
     return page;
 }
 
+page_token_t *page_token_create_empty() {
+    page_token_t *token = calloc(1, sizeof(page_token_t));
+    token->type = PAGE_TOKEN_TEXT;
+    token->style.fg = PAGE_TOKEN_ATTR_WHITE,
+           token->style.bg = PAGE_TOKEN_ATTR_BG_BLACK;
+    token->style.extra = PAGE_TOKEN_ATTR_NONE;
+    return token;
+}
+
 page_collection_t *page_collection_create(size_t size) {
     page_collection_t *collection = calloc(1, sizeof(page_collection_t));
 
@@ -31,6 +41,26 @@ page_collection_t *page_collection_create(size_t size) {
 
     collection->size = size;
     return collection;
+}
+
+void page_token_append(page_t *page, page_token_t *token, bool inherit_style) {
+    if (!page || !token) {
+        return;
+    }
+
+    if (inherit_style) {
+        token->style.bg = page->last_token->style.bg;
+        token->style.fg = page->last_token->style.fg;
+        token->style.extra = page->last_token->style.extra;
+    }
+
+    if (page->last_token) {
+        page->last_token->next = token;
+    } else {
+        page->tokens = token;
+    }
+
+    page->last_token = token;
 }
 
 void page_collection_resize(page_collection_t *collection, size_t new_size) {
@@ -59,33 +89,68 @@ bool page_is_empty(page_t *page) {
     return memcmp(page, &empty_page, sizeof(empty_page)) == 0;
 }
 
-void page_collection_print(page_collection_t *collection, const char *name) {
-    for (size_t i = 0; i < collection->size; i++) {
-        printf("%s: PAGE %ld\n", name, i);
-        printf("* id: %d\n", collection->pages[i]->id);
-        printf("* prev_id: %d\n", collection->pages[i]->prev_id);
-        printf("* next_id: %d\n", collection->pages[i]->next_id);
-        printf("* unix_date: %lu\n", collection->pages[i]->unix_date);
-        printf("* title: %s\n", collection->pages[i]->title);
-        // TODO: Print parsed content
-        printf("\n");
-    }
-}
-
-void page_tokens_destroy(page_token_t **tokens) {
-    if (!tokens) {
+void page_tokens_print(page_t *page) {
+    if (!page->tokens) {
+        printf("Page contains no tokens\n\n");
         return;
     }
 
-    for (size_t i = 0; i < PAGE_LINES; i++) {
-        free(tokens[i]);
-    }
+    page_token_t *cursor = page->tokens;
 
-    free(tokens);
+    while (cursor != page->last_token) {
+        printf("| - type: %d\n", cursor->type);
+        printf("| - text: %s\n", cursor->text);
+        printf("| - length: %d\n", cursor->length);
+        printf("| - href: %d\n", cursor->href);
+        printf("| - fg: %d\n", cursor->style.fg);
+        printf("| - bg: %d\n", cursor->style.bg);
+        printf("| - extra: %d\n", cursor->style.extra);
+        printf("| \n");
+        cursor = cursor->next;
+    }
+}
+
+void page_print(page_t *page) {
+    printf("\nPAGE %d\n", page->id);
+    printf("* id: %d\n", page->id);
+    printf("* prev_id: %d\n", page->prev_id);
+    printf("* next_id: %d\n", page->next_id);
+    printf("* unix_date: %lu\n", page->unix_date);
+    printf("* title: %s\n", page->title);
+    printf("* tokens: \n");
+    page_tokens_print(page);
+}
+
+void page_collection_print(page_collection_t *collection) {
+    for (size_t i = 0; i < collection->size; i++) {
+        page_print(collection->pages[i]);
+    }
+}
+
+void page_tokens_destroy(page_t *page) {
+    if (page->tokens) {
+        page_token_t *tmp;
+        page_token_t *cursor = page->tokens;
+
+        while (cursor != NULL) {
+            tmp = cursor->next;
+
+            if (cursor->text != NULL) {
+                free(cursor->text);
+            }
+
+            free(cursor);
+            cursor = tmp;
+        }
+    }
 }
 
 void page_destroy(page_t *page) {
-    page_tokens_destroy(page->tokens);
+    if (!page) {
+        return;
+    }
+
+    page_tokens_destroy(page);
     free(page->title);
     free(page);
 }

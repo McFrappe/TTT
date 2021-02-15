@@ -10,6 +10,5 @@
 #include "pages.h"
 #include "shared.h"
 #include "errors.h"
-#include "html_parser.h"
 
-page_collection_t *parser_get_page_collection(const char *data, size_t size);
+void html_parser_get_page_tokens(page_t *page, const char *data, size_t size);

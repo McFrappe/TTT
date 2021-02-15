@@ -33,11 +33,8 @@ typedef enum page_token_attr {
 
 typedef enum page_token_type {
     PAGE_TOKEN_HEADER,          // .toprow
-    PAGE_TOKEN_TEXT,            // -
-    PAGE_TOKEN_WHITESPACE,      // -
-    PAGE_TOKEN_LINK,            // <a>
-    PAGE_TOKEN_NEWLINE,         // \n
-    PAGE_TOKEN_END,             // EOF
+    PAGE_TOKEN_TEXT,            // any text content inside tags
+    PAGE_TOKEN_LINK             // <a>
 } page_token_type_t;
 
 struct page_token_style {
@@ -48,17 +45,19 @@ struct page_token_style {
 
 struct page_token {
     char *text;
-    // A single tokens text may never exceed PAGE_COLS characters
-    uint8_t size;
+    uint16_t href;
+    uint8_t length;
     page_token_type_t type;
     page_token_style_t style;
+    page_token_t *next;
 };
 
 struct page {
     char *title;
     uint16_t id, prev_id, next_id;
     uint64_t unix_date;
-    page_token_t **tokens;
+    page_token_t *tokens;
+    page_token_t *last_token;
 };
 
 struct page_collection {
@@ -67,10 +66,14 @@ struct page_collection {
 };
 
 page_t *page_create_empty();
+page_token_t *page_token_create_empty();
 page_collection_t *page_collection_create(size_t size);
 bool page_is_empty(page_t *page);
 void page_collection_resize(page_collection_t *collection, size_t new_size);
 void page_destroy(page_t *page);
-void page_tokens_destroy(page_token_t **tokens);
+void page_tokens_destroy(page_t *page);
+void page_token_append(page_t *page, page_token_t *token, bool inherit_style);
 void page_collection_destroy(page_collection_t *collection);
-void page_collection_print(page_collection_t *collection, const char *name);
+void page_print(page_t *page);
+void page_tokens_print(page_t *page);
+void page_collection_print(page_collection_t *collection);

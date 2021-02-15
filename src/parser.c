@@ -75,35 +75,23 @@ static size_t get_unsigned_numeric(const char *data, jsmntok_t *cursor, size_t m
     return numeric;
 }
 
-page_token_t **parser_get_page_tokens(const char *html, size_t size) {
-    if (!html || size == 0) {
-        error_set_with_string(
-            TTT_ERROR_HTML_PARSER_FAILED,
-            "ERROR: Could not parse empty HTML page content"
-        );
-        return NULL;
-    }
-
-    return NULL;
-}
-
-static page_token_t **get_tokens(const char *data, jsmntok_t **cursor) {
+static void parse_content(page_t *page, const char *data, jsmntok_t **cursor) {
     if ((*cursor)->type != JSMN_ARRAY) {
         error_set_with_string(
-            TTT_ERROR_HTML_PARSER_FAILED,
+            TTT_ERROR_PAGE_PARSER_FAILED,
             "ERROR: Could not parse invalid page content data type"
         );
-        return NULL;
+        return;
     }
 
     size_t array_size = (*cursor)->size;
 
     if (array_size == 0) {
         error_set_with_string(
-            TTT_ERROR_HTML_PARSER_FAILED,
+            TTT_ERROR_PAGE_PARSER_FAILED,
             "ERROR: Could not parse empty page content array"
         );
-        return NULL;
+        return;
     }
 
     // TODO: Add support for more than one element?
@@ -111,16 +99,25 @@ static page_token_t **get_tokens(const char *data, jsmntok_t **cursor) {
     // Go to the first array element
     next_token(cursor);
     char *html = get_string(data, *cursor);
-    page_token_t **tokens = parser_get_page_tokens(html, token_length(*cursor));
+    html_parser_get_page_tokens(page, html, token_length(*cursor));
     next_n_token(cursor, array_size - 1);
     free(html);
-    return tokens;
 }
 
 static page_t *get_page(const char *data, jsmntok_t **cursor) {
-    page_t *page = page_create_empty();
     char *key = NULL;
     size_t keys = (*cursor)->size;
+
+    // We need a minimum of 1 key to have a non-empty page object
+    if (keys < 1) {
+        error_set_with_string(
+            TTT_ERROR_PAGE_PARSER_FAILED,
+            "ERROR: Could not parse empty page object"
+        );
+        return NULL;
+    }
+
+    page_t *page = page_create_empty();
 
     for (size_t i = 0; i < keys; i++) {
         next_token(cursor);
@@ -142,7 +139,7 @@ static page_t *get_page(const char *data, jsmntok_t **cursor) {
         } else if (strcmp(key, "title") == 0) {
             page->title = get_string(data, *cursor);
         } else if (strcmp(key, "content") == 0) {
-            page->tokens = get_tokens(data, cursor);
+            parse_content(page, data, cursor);
         }
 
         free(key);
@@ -152,7 +149,7 @@ static page_t *get_page(const char *data, jsmntok_t **cursor) {
 }
 
 page_collection_t *parser_get_page_collection(const char *data, size_t size) {
-    if (!data || size == 0) {
+    if (!data || *data == '\0' || size == 0) {
         error_set_with_string(
             TTT_ERROR_PAGE_PARSER_FAILED,
             "ERROR: Could not parse empty response data"
@@ -197,6 +194,8 @@ page_collection_t *parser_get_page_collection(const char *data, size_t size) {
                 TTT_ERROR_PAGE_PARSER_FAILED,
                 "ERROR: No pages could be parsed"
             );
+            page_collection_destroy(collection);
+            return NULL;
         }
 
         page_collection_resize(collection, parsed_objects);
