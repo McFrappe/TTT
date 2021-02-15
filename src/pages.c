@@ -127,6 +127,14 @@ void page_collection_print(page_collection_t *collection) {
     }
 }
 
+void page_token_destroy(page_token_t *token) {
+    if (token->text != NULL) {
+        free(token->text);
+    }
+
+    free(token);
+}
+
 void page_tokens_destroy(page_t *page) {
     if (page->tokens) {
         page_token_t *tmp;
@@ -134,12 +142,7 @@ void page_tokens_destroy(page_t *page) {
 
         while (cursor != NULL) {
             tmp = cursor->next;
-
-            if (cursor->text != NULL) {
-                free(cursor->text);
-            }
-
-            free(cursor);
+            page_token_destroy(cursor);
             cursor = tmp;
         }
     }

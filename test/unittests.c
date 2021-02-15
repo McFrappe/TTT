@@ -9,6 +9,7 @@
 #define JSON_DATA_PAGE_RANGE_PATH "./test/data/range.json"
 #define JSON_DATA_PAGE_RANGE_LARGE_PATH "./test/data/range_large.json"
 #define HTML_DATA_PAGE_1_PATH "./test/data/page1.html"
+#define HTML_DATA_PAGE_2_PATH "./test/data/nested_span.html"
 
 #define NO_HREF 0
 
@@ -21,6 +22,7 @@ static file_data_t JSON_DATA_PAGE;
 static file_data_t JSON_DATA_PAGE_RANGE;
 static file_data_t JSON_DATA_PAGE_RANGE_LARGE;
 static file_data_t HTML_DATA_PAGE_1;
+static file_data_t HTML_DATA_PAGE_2;
 
 bool load_test_data(file_data_t *dest, const char *path) {
     FILE *f = fopen(path, "r");
@@ -895,12 +897,63 @@ void test_page_html_1() {
     error_reset();
 }
 
+void test_page_html_2() {
+    page_t *page = page_create_empty();
+    html_parser_get_page_tokens(page, HTML_DATA_PAGE_2.data, HTML_DATA_PAGE_2.length);
+    page_token_t *cursor = page->tokens;
+
+    assert_parsed_page_tokens(page);
+
+    assert_token(&cursor,
+        " 100 SVT Text         Mandag 15 feb 2021",
+        NO_HREF,
+        PAGE_TOKEN_HEADER,
+        PAGE_TOKEN_ATTR_BG_BLACK,
+        PAGE_TOKEN_ATTR_WHITE,
+        PAGE_TOKEN_ATTR_NONE
+    );
+
+    assert_token(
+        &cursor,
+        " ",
+        NO_HREF,
+        PAGE_TOKEN_TEXT,
+        PAGE_TOKEN_ATTR_BG_BLACK,
+        PAGE_TOKEN_ATTR_WHITE,
+        PAGE_TOKEN_ATTR_NONE
+    );
+
+    assert_token(
+        &cursor,
+        " ",
+        NO_HREF,
+        PAGE_TOKEN_TEXT,
+        PAGE_TOKEN_ATTR_BG_BLUE,
+        PAGE_TOKEN_ATTR_BLUE,
+        PAGE_TOKEN_ATTR_NONE
+    );
+
+    assert_token(
+        &cursor,
+        "                                      ",
+        NO_HREF,
+        PAGE_TOKEN_TEXT,
+        PAGE_TOKEN_ATTR_BG_BLUE,
+        PAGE_TOKEN_ATTR_BLUE,
+        PAGE_TOKEN_ATTR_NONE
+    );
+
+    page_destroy(page);
+    error_reset();
+}
+
 int main() {
     if (
         !load_test_data(&JSON_DATA_PAGE, JSON_DATA_PAGE_PATH) ||
         !load_test_data(&JSON_DATA_PAGE_RANGE, JSON_DATA_PAGE_RANGE_PATH) ||
         !load_test_data(&JSON_DATA_PAGE_RANGE_LARGE, JSON_DATA_PAGE_RANGE_LARGE_PATH) ||
-        !load_test_data(&HTML_DATA_PAGE_1, HTML_DATA_PAGE_1_PATH)
+        !load_test_data(&HTML_DATA_PAGE_1, HTML_DATA_PAGE_1_PATH) ||
+        !load_test_data(&HTML_DATA_PAGE_2, HTML_DATA_PAGE_2_PATH)
     ) {
         printf("Failed to load test JSON data!\n");
         exit(1);
@@ -937,6 +990,7 @@ int main() {
     CU_add_test(html_parser_suite, "test_page_html_newline_whitespace", test_page_html_newline_whitespace);
     CU_add_test(html_parser_suite, "test_page_html_span_separator", test_page_html_span_separator);
     CU_add_test(html_parser_suite, "test_page_html_1", test_page_html_1);
+    CU_add_test(html_parser_suite, "test_page_html_2", test_page_html_2);
 
     CU_basic_set_mode(CU_BRM_VERBOSE);
     CU_basic_run_tests();
@@ -946,6 +1000,7 @@ int main() {
     destroy_test_data(&JSON_DATA_PAGE_RANGE);
     destroy_test_data(&JSON_DATA_PAGE_RANGE_LARGE);
     destroy_test_data(&HTML_DATA_PAGE_1);
+    destroy_test_data(&HTML_DATA_PAGE_2);
 
-    return 0;
+    return CU_get_error();
 }

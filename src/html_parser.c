@@ -45,6 +45,23 @@ static void set_token_text(page_token_t *token, char *str, size_t length) {
     token->text[token->length] = '\0';
 }
 
+static void save_current_text_to_token(page_t *page, page_token_t *token, char *buf, int *i, bool *create_new) {
+    if (*i != 0) {
+        if (*create_new) {
+            token = page_token_create_empty();
+            page_token_append(page, token, true);
+            (*create_new) = false;
+        }
+
+        set_token_text(token, buf, *i);
+
+        (*i) = 0;
+        buf[0] = '\0';
+
+        *create_new = true;
+    }
+}
+
 static void add_separator_token(page_t *page, char *str, size_t length, bool inherit_style) {
     page_token_t *token = page_token_create_empty();
     page_token_append(page, token, inherit_style);
@@ -280,17 +297,12 @@ static bool parse_span_tag(page_t *page, char **cursor) {
     // Move to first character inside the span-tag
     next_token(cursor);
 
+    bool should_create_new_token = false;
+
     // Move to the end of the span-tag
     while ((*cursor)[0] != '\0') {
         if (is_newline(cursor)) {
-            if (i != 0) {
-                // Save current token text before parsing the (possible) whitespace
-                set_token_text(token, text_buf, i);
-                // Reset buf so that we do not try and save the token text again
-                // when we find the end of the span tag
-                i = 0;
-                text_buf[0] = '\0';
-            }
+            save_current_text_to_token(page, token, text_buf, &i, &should_create_new_token);
 
             // Move to next non-newline character
             next_n_token(cursor, NEW_LINE_SEQUENCE_LENGTH);
@@ -299,24 +311,13 @@ static bool parse_span_tag(page_t *page, char **cursor) {
                 return false;
             }
         } else if (is_start_of_tag(cursor, 'a')) {
-            if (i != 0) {
-                set_token_text(token, text_buf, i);
-                i = 0;
-                text_buf[0] = '\0';
-            }
+            save_current_text_to_token(page, token, text_buf, &i, &should_create_new_token);
 
             if (!parse_a_tag(page, cursor)) {
                 return false;
             }
-
-            // TODO: This will create an extra empty token if the a tag
-            //       is the last inner text of the span or header tag
-            token = page_token_create_empty();
-            page_token_append(page, token, true);
         } else if ((is_span && is_end_of_tag(cursor, 's')) || (is_header && is_end_of_tag(cursor, 'h'))) {
-            if (i != 0) {
-                set_token_text(token, text_buf, i);
-            }
+            save_current_text_to_token(page, token, text_buf, &i, &should_create_new_token);
 
             if (is_span) {
                 next_n_token(cursor, SPAN_TAG_END_LENGTH);
