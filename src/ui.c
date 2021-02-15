@@ -4,6 +4,7 @@
 // TODO: Add window where we will echo and take input
 static WINDOW *content_win;
 static int current_page_index = -1;
+static int current_page_id = TTT_PAGE_HOME;
 static page_t *current_page = NULL;
 static page_collection_t *current_collection;
 
@@ -18,6 +19,24 @@ static void set_page(uint16_t page) {
     current_page_index = 0;
     current_page = current_collection->pages[0];
     draw(content_win, VIEW_MAIN, current_page);
+}
+
+static void previous_page() {
+    if (current_page_id == TTT_PAGE_HOME) {
+        return;
+    }
+
+    current_page_id -= 1;
+    set_page(current_page_id);
+}
+
+static void next_page() {
+    if (current_page_id == TTT_PAGE_CONTENTS) {
+        return;
+    }
+
+    current_page_id += 1;
+    set_page(current_page_id);
 }
 
 static void create_win() {
@@ -67,7 +86,7 @@ void ui_initialize() {
     create_win();
     signal(SIGWINCH, resize_handler);
     refresh();
-    set_page(TTT_PAGE_HOME);
+    set_page(current_page_id);
 }
 
 void ui_event_loop() {
@@ -78,12 +97,17 @@ void ui_event_loop() {
         key = wgetch(content_win);
 
         switch (key) {
-        case '?':
-            draw_toggle_help(content_win, current_page);
-            break;
-
-        case 'q':
-            return;
+            case 'h':
+                previous_page();
+                break;
+            case 'l':
+                next_page();
+                break;
+            case '?':
+                draw_toggle_help(content_win, current_page);
+                break;
+            case 'q':
+                return;
         }
     }
 }
