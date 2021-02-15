@@ -15,6 +15,7 @@ typedef enum colorschemes {
     COLORSCHEME_YX,         // YELLOW-DEFAULT
     COLORSCHEME_CX,         // CYAN-DEFAULT
     COLORSCHEME_WR,         // WHITE-RED
+    COLORSCHEME_RX,         // RED-BLACK
 } colorschemes_t;
 
 void colors_initialize();

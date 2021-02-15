@@ -6,25 +6,6 @@ static WINDOW *content_win;
 static int current_page_index = -1;
 static page_t *current_page = NULL;
 static page_collection_t *current_collection;
-static char page_cache[MAX_PAGE_COLLECTION_SIZE][PAGE_LINES * PAGE_COLS];
-
-static void save_view_buffer() {
-    assert(current_page_index >= 0);
-    assert(current_page_index < MAX_PAGE_COLLECTION_SIZE);
-    mvwinstr(content_win, PAGE_LINES, PAGE_COLS, page_cache[current_page_index]);
-}
-
-static void restore_page_buffer(int index) {
-    assert(index >= 0);
-    assert(index < MAX_PAGE_COLLECTION_SIZE);
-
-    if (page_cache[index][0] == '\0') {
-        return;
-    }
-
-    mvwaddstr(content_win, PAGE_LINES, PAGE_COLS, page_cache[index]);
-    page_cache[index][0] = '\0';
-}
 
 static void set_page(uint16_t page) {
     error_reset();
@@ -34,7 +15,6 @@ static void set_page(uint16_t page) {
     }
 
     current_collection = api_get_page(page);
-    // TODO: set the current page and current_page_index accordingly
     current_page_index = 0;
     current_page = current_collection->pages[0];
     draw(content_win, VIEW_MAIN, current_page);
@@ -81,18 +61,11 @@ void ui_initialize() {
     initscr();
     noecho();
     nodelay(stdscr, TRUE);
-    // Hide cursor
     curs_set(0);
     api_initialize();
     colors_initialize();
     create_win();
     signal(SIGWINCH, resize_handler);
-
-    // By checking the first char of each page buffer cache we can detect empty buffers
-    for (int i = 0; i < MAX_PAGE_COLLECTION_SIZE; i++) {
-        page_cache[i][0] = '\0';
-    }
-
     refresh();
     set_page(TTT_PAGE_HOME);
 }

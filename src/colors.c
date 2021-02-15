@@ -17,6 +17,7 @@ void colors_initialize() {
     init_pair(COLORSCHEME_YX,       COLOR_YELLOW,   COLOR_BLACK);
     init_pair(COLORSCHEME_CX,       COLOR_CYAN,     COLOR_BLACK);
     init_pair(COLORSCHEME_WR,       COLOR_WHITE,    COLOR_RED);
+    init_pair(COLORSCHEME_RX,       COLOR_RED,      COLOR_BLACK);
 }
 
 attr_t colors_get_color_pair_from_style(page_token_style_t style) {

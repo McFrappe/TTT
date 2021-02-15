@@ -49,7 +49,7 @@ static void create_page_range(char *buf, size_t buf_size, uint16_t start, uint16
 /// @param end the end of the range (0 means no range)
 /// @return the endpoint URL for the page between start and end or only start if end is 0
 static void create_endpoint_url(char *buf, size_t buf_size, uint16_t start, uint16_t end) {
-    assert(start != 0);
+    assert(start >= 0);
     char range[RANGE_BUF_SIZE];
     create_page_range(range, RANGE_BUF_SIZE, start, end);
     snprintf(

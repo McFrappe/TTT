@@ -17,7 +17,7 @@ void print_logo_letter(WINDOW *win, int line, int *col) {
         waddch(win, ' ');
     }
 
-    wmove(win, line + 2, (*col) + 2);
+    wmove(win, line + 2, (*col) + PAGE_SIDE_PADDING_LG);
     waddch(win, ' ');
     wattroff(win, COLOR_PAIR(COLORSCHEME_BW) | A_UNDERLINE);
     *col += 3 + PAGE_SIDE_PADDING;
@@ -25,10 +25,14 @@ void print_logo_letter(WINDOW *win, int line, int *col) {
 
 void fill_rows(WINDOW *win, int *line, int rows, attr_t attr) {
     wattron(win, attr);
-    wmove(win, *line, 0);
+    wmove(win, *line, PAGE_SIDE_PADDING);
 
-    for (int i = 0; i < rows * PAGE_COLS; i++) {
-        waddch(win, ' ');
+    for (int i = 0; i < rows; i++) {
+        wmove(win, (*line + i), 1);
+
+        for (int j = 0; j < PAGE_COLS - PAGE_SIDE_PADDING; j++) {
+            waddch(win, ' ');
+        }
     }
 
     wattroff(win, attr);
@@ -36,7 +40,7 @@ void fill_rows(WINDOW *win, int *line, int rows, attr_t attr) {
 }
 
 void print_logo(WINDOW *win, int *line) {
-    int col = PAGE_SIDE_PADDING;
+    int col = PAGE_SIDE_PADDING_LG;
     fill_rows(win, line, 4, COLOR_PAIR(COLORSCHEME_YBL));
     *line -= 3;
     print_logo_letter(win, *line, &col);
@@ -53,7 +57,7 @@ void print_keybinding(WINDOW *win, int *line, const char *desc, const char *key)
     int key_length = strlen(key);
     int dots = PAGE_COLS - desc_length - key_length - 2 * (PAGE_SIDE_PADDING);
     wattron(win, COLOR_PAIR(COLORSCHEME_DEFAULT));
-    mvwprintw(win, *line, PAGE_SIDE_PADDING, desc);
+    mvwprintw(win, *line, PAGE_SIDE_PADDING_LG, desc);
 
     for (int i = 0; i < dots; i++) {
         waddch(win, '.');
@@ -69,21 +73,21 @@ void print_bold_title(WINDOW *win, int *line, const char *title) {
     // Add empty line above
     *line += 1;
     wattron(win, A_BOLD | COLOR_PAIR(COLORSCHEME_YX));
-    mvwprintw(win, *line, PAGE_SIDE_PADDING, title);
+    mvwprintw(win, *line, PAGE_SIDE_PADDING_LG, title);
     wattroff(win, A_BOLD | COLOR_PAIR(COLORSCHEME_YX));
     *line += 1;
 }
 
 void print_toprow(WINDOW *win, int *line, const char *id, const char *title) {
     wattron(win, COLOR_PAIR(COLORSCHEME_DEFAULT));
-    mvwprintw(win, *line, 0, id);
-    mvwprintw(win, *line, strlen(id) + 1, title);
+    mvwprintw(win, *line, PAGE_SIDE_PADDING, id);
+    mvwprintw(win, *line, strlen(id) + 1 + PAGE_SIDE_PADDING, title);
     *line += 1;
 }
 
 void print_center(WINDOW *win, int *line, const char *str, int side_padding, attr_t attrs) {
     int str_length = strlen(str);
-    int center_start = (PAGE_COLS - str_length) / 2;
+    int center_start = (PAGE_COLS - str_length) / 2 + PAGE_SIDE_PADDING;
     wattron(win, attrs);
     wmove(win, *line, center_start - side_padding);
 
@@ -102,14 +106,14 @@ void print_center_fill(WINDOW *win, int *line, const char *str, attr_t attrs) {
     print_center(win, line, str, 0, attrs);
 }
 
-void draw_error(WINDOW *win) {
+void draw_error() {
     const char *error_str = error_get_string();
 
     if (!error_str) {
         return;
     }
 
-    mvwprintw(win, PAGE_LINES - 1, 0, error_str);
+    mvaddstr(LINES - 1, 1, error_str);
 }
 
 static void draw_help(WINDOW *win) {
@@ -140,7 +144,7 @@ static void draw_empty_page(WINDOW *win) {
 
 void draw_main(WINDOW *win, page_t *page) {
     if (error_is_set()) {
-        draw_error(win);
+        draw_error();
     }
 
     if (!page || !page->tokens) {
@@ -184,20 +188,21 @@ void draw(WINDOW *win, view_t view, page_t *page) {
     }
 
     switch (view) {
-    case VIEW_MAIN:
-        draw_main(win, page);
-        break;
+        case VIEW_MAIN:
+            draw_main(win, page);
+            break;
 
-    case VIEW_HELP:
-        draw_help(win);
-        break;
+        case VIEW_HELP:
+            draw_help(win);
+            break;
 
-    default:
-        break;
+        default:
+            break;
     }
 
     current_view = view;
     wattroff(win, COLOR_PAIR(COLORSCHEME_DEFAULT));
+    refresh();
     wrefresh(win);
 }
 
