@@ -51,6 +51,31 @@ static void add_separator_token(page_t *page, char *str, size_t length, bool inh
     set_token_text(token, str, length);
 }
 
+static void replace_unicode_escape_sequence(const char *html_content, int *start_index, char **dest, int *dest_position) {
+    const char *sequence_start = html_content + (*start_index);
+
+    if (
+        strncmp(sequence_start, "\\u00e4", UNICODE_ESCAPE_SEQUENCE_LENGTH) == 0 ||
+        strncmp(sequence_start, "\\u00e5", UNICODE_ESCAPE_SEQUENCE_LENGTH) == 0
+    ) {
+        (*dest)[*dest_position] = 'a';
+    } else if (
+        strncmp(sequence_start, "\\u00c4", UNICODE_ESCAPE_SEQUENCE_LENGTH) == 0 ||
+        strncmp(sequence_start, "\\u00c5", UNICODE_ESCAPE_SEQUENCE_LENGTH) == 0
+    ) {
+        (*dest)[*dest_position] = 'A';
+    } else if (strncmp(sequence_start, "\\u00f6", UNICODE_ESCAPE_SEQUENCE_LENGTH) == 0) {
+        (*dest)[*dest_position] = 'o';
+    } else if (strncmp(sequence_start, "\\u00d6", UNICODE_ESCAPE_SEQUENCE_LENGTH) == 0) {
+        (*dest)[*dest_position] = 'O';
+    } else {
+        printf("Found unhandled unicode escape sequence: %s\n", sequence_start);
+    }
+
+    (*start_index) += UNICODE_ESCAPE_SEQUENCE_LENGTH;
+    (*dest_position) += 1;
+}
+
 /// @brief Removes unnecessary backslashes and div-tag
 static bool clean_html_content(char *buf, const char *html_content, size_t size) {
     assert(buf != NULL);
@@ -70,14 +95,12 @@ static bool clean_html_content(char *buf, const char *html_content, size_t size)
         // Only remove backslashes that are not part of the newline escape sequence
         if (html_content[i] == '\\' && html_content[i + 1] != 'n') {
             // TODO: Readd the unicode escape sequence code here
-            if (html_content[i + 1] == 'u') {
-                i += UNICODE_ESCAPE_SEQUENCE_LENGTH - 1;
-                buf[buf_position] = 'x';
-                buf_position++;
-            }
-
             // Move to next non-backslash character
-            i++;
+            if (html_content[i + 1] == 'u') {
+                replace_unicode_escape_sequence(html_content, &i, &buf, &buf_position);
+            } else {
+                i++;
+            }
         }
 
         buf[buf_position] = html_content[i];
