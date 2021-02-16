@@ -2,9 +2,9 @@
 #include <unistd.h>
 
 void print_help() {
-    printf("usage ./ttt [-h] [-r]\n\n");
+    printf("usage ttt [-h] [-r]\n\n");
     printf("TTT - Terminal Text TV\n");
-    printf("An interface to Text TV written in C\n\n");
+    printf("A terminal interface to Text TV written in C\n\n");
     printf("optional arguments:\n");
     printf("-h          show this help message\n");
     printf("-r          restore terminal colors on quit\n");

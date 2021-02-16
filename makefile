@@ -10,6 +10,9 @@ OBJ_FILES:=src/ui.o src/api.o src/draw.c src/colors.c $(BASE_OBJ_FILES)
 MAIN_FILES:=src/main.c $(OBJ_FILES)
 TEST_FILES:=test/unittests.c $(BASE_OBJ_FILES)
 
+PREFIX=/usr/local
+
+
 DIST_DIR=bin
 TTT_OUT_PATH=$(DIST_DIR)/ttt
 TEST_OUT_PATH=$(DIST_DIR)/ttt_tests
@@ -46,6 +49,10 @@ test: unittests
 
 memtest: unittests
 	valgrind $(VALGRIND_FLAGS) ./$(TEST_OUT_PATH)
+
+install: main
+	mkdir -p $(PREFIX)/bin
+	install -m 0755 $(TTT_OUT_PATH) $(PREFIX)/bin/ttt
 
 prebuild:
 	mkdir -p $(DIST_DIR)
