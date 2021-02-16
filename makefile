@@ -54,6 +54,9 @@ install: main
 	mkdir -p $(PREFIX)/bin
 	install -m 0755 $(TTT_OUT_PATH) $(PREFIX)/bin/ttt
 
+uninstall: 
+	rm $(PREFIX)/bin/ttt
+
 prebuild:
 	mkdir -p $(DIST_DIR)
 
