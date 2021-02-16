@@ -1,15 +1,28 @@
 #include "errors.h"
 
-static const char *custom_error_string = NULL;
+static char *custom_error_string = NULL;
 
 void error_set(ttt_error_t code) {
     errno = code;
+
+    if (custom_error_string) {
+        free(custom_error_string);
+    }
+
     custom_error_string = NULL;
 }
 
 void error_set_with_string(ttt_error_t code, const char *str) {
     errno = code;
-    custom_error_string = str;
+
+    if (custom_error_string) {
+        free(custom_error_string);
+    }
+
+    size_t length = strlen(str);
+    custom_error_string = calloc(length + 1, sizeof(char));
+    strncpy(custom_error_string, str, length);
+    custom_error_string[length] = '\0';
 }
 
 bool error_is_set() {

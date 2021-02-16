@@ -88,7 +88,17 @@ static void replace_unicode_escape_sequence(const char *html_content, int *start
     } else if (strncmp(sequence_start, "\\u00e9", UNICODE_ESCAPE_SEQUENCE_LENGTH) == 0) {
         (*dest)[*dest_position] = 'e';
     } else {
-        printf("Found unhandled unicode escape sequence: %s\n", sequence_start);
+        char error[256];
+        snprintf(error, 256, "ERROR: Found unhandled unicode escape sequence: %.6s", sequence_start);
+
+        error_set_with_string(
+            TTT_ERROR_HTML_PARSER_FAILED,
+            error
+        );
+
+        // There is no need to die if we found an unhandled escape sequence,
+        // but we should make sure to show an error so that it can be fixed
+        (*dest)[*dest_position] = 'X';
     }
 
     (*start_index) += UNICODE_ESCAPE_SEQUENCE_LENGTH;

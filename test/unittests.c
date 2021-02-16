@@ -116,7 +116,11 @@ void assert_parsed_page_tokens(page_t *page) {
     page_token_t *value = page->tokens;
 
     if (error_is_set()) {
-        printf(" %s - ", error_get_string());
+        const char *error_str = error_get_string();
+
+        if (error_str) {
+            printf(" %s - ", error_str);
+        }
     }
 
     if (!value) {
