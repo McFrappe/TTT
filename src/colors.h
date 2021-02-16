@@ -18,5 +18,5 @@ typedef enum colorschemes {
     COLORSCHEME_RX,         // RED-BLACK
 } colorschemes_t;
 
-void colors_initialize();
+void colors_initialize(bool overwrite_colors, bool transparent_background);
 attr_t colors_get_color_pair_from_style(page_token_style_t style);

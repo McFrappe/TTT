@@ -8,22 +8,32 @@ void print_help() {
     printf("optional arguments:\n");
     printf("-h          show this help message\n");
     printf("-r          restore terminal colors on quit\n");
+    printf("-d          do not overwrite terminal colors (might decrease readability)\n");
+    printf("-t          transparent background for page content (works well with '-d')\n");
 }
 
 int main(int argc, char *argv[]) {
     bool reset = false;
+    bool overwrite_colors = true;
+    bool transparent_background = false;
 
     if (argc > 1) {
-        // Resetting is really slow, so we hide it behind '-r'
-        if (strcmp(argv[1], "-r") == 0) {
-            reset = true;
-        } else {
-            print_help();
-            return 1;
+        for (int i = 1; i < argc; i++) {
+            // Resetting is really slow, so we hide it behind '-r'
+            if (strcmp(argv[i], "-r") == 0) {
+                reset = true;
+            } else if (strcmp(argv[i], "-d") == 0) {
+                overwrite_colors = false;
+            } else if (strcmp(argv[i], "-t") == 0) {
+                transparent_background = true;
+            } else {
+                print_help();
+                return 1;
+            }
         }
     }
 
-    ui_initialize();
+    ui_initialize(overwrite_colors, transparent_background);
     ui_event_loop();
     ui_destroy();
 

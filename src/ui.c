@@ -75,14 +75,14 @@ static void resize_handler(int sig) {
     resize_win();
 }
 
-void ui_initialize() {
+void ui_initialize(bool overwrite_colors, bool transparent_background) {
     setlocale(LC_ALL, "");
     initscr();
     noecho();
     nodelay(stdscr, TRUE);
     curs_set(0);
     api_initialize();
-    colors_initialize();
+    colors_initialize(overwrite_colors, transparent_background);
     create_win();
     signal(SIGWINCH, resize_handler);
     refresh();
