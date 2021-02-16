@@ -85,6 +85,8 @@ static void replace_unicode_escape_sequence(const char *html_content, int *start
         (*dest)[*dest_position] = 'o';
     } else if (strncmp(sequence_start, "\\u00d6", UNICODE_ESCAPE_SEQUENCE_LENGTH) == 0) {
         (*dest)[*dest_position] = 'O';
+    } else if (strncmp(sequence_start, "\\u00e9", UNICODE_ESCAPE_SEQUENCE_LENGTH) == 0) {
+        (*dest)[*dest_position] = 'e';
     } else {
         printf("Found unhandled unicode escape sequence: %s\n", sequence_start);
     }
