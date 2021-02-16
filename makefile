@@ -2,8 +2,8 @@ CC=gcc
 CFLAGS=-Wall -pedantic -g
 CFLAGS_LIB=-c
 
-LIBS=-lcurl -lncursesw
-TEST_LIBS=-lcunit
+LIBS=$(shell pkg-config --libs --cflags libcurl ncurses)
+TEST_LIBS=$(shell pkg-config --libs cunit)
 
 BASE_OBJ_FILES:=src/parser.o src/html_parser.c src/pages.o src/errors.c
 OBJ_FILES:=src/ui.o src/api.o src/draw.c src/colors.c $(BASE_OBJ_FILES)
