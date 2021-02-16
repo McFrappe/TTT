@@ -1,6 +1,33 @@
 #include "draw.h"
 
+#define MAX_PAGE_LINKS 32
+
+// Stores the position and length of a clickable link
+typedef struct {
+    int x, y;
+    page_token_t *token;
+} link_t;
+
 static view_t current_view;
+
+static int current_link = -1;
+static int current_link_count = 0;
+static link_t rendered_links[MAX_PAGE_LINKS];
+
+void save_rendered_link(WINDOW *win, page_token_t *token) {
+    if (current_link_count >= MAX_PAGE_LINKS - 1) {
+        return;
+    }
+
+    getyx(win, rendered_links[current_link_count].y, rendered_links[current_link_count].x);
+    rendered_links[current_link_count].token = token;
+
+    current_link_count++;
+}
+
+void terminate_rendered_link_list() {
+    rendered_links[current_link].token = NULL;
+}
 
 /// @brief Prints a T in a 3x3 box
 void print_logo_letter(WINDOW *win, int line, int *col) {
@@ -154,6 +181,8 @@ void draw_main(WINDOW *win, page_t *page) {
 
     page_token_t *cursor = page->tokens;
     wmove(win, 0, 0);
+    current_link = -1;
+    current_link_count = 0;
 
     while (cursor) {
         attr_t style = colors_get_color_pair_from_style(cursor->style);
@@ -164,6 +193,7 @@ void draw_main(WINDOW *win, page_t *page) {
 
         if (cursor->type == PAGE_TOKEN_LINK) {
             style |= A_UNDERLINE;
+            save_rendered_link(win, cursor);
         }
 
         wattron(win, style);
@@ -176,6 +206,8 @@ void draw_main(WINDOW *win, page_t *page) {
 
         cursor = cursor->next;
     }
+
+    terminate_rendered_link_list();
 }
 
 void draw(WINDOW *win, view_t view, page_t *page) {
@@ -204,6 +236,70 @@ void draw(WINDOW *win, view_t view, page_t *page) {
     wattroff(win, COLOR_PAIR(COLORSCHEME_DEFAULT));
     refresh();
     wrefresh(win);
+}
+
+void dehighlight_link(WINDOW *win) {
+    assert(current_link >= 0);
+    assert(current_link < MAX_PAGE_LINKS);
+
+    link_t current = rendered_links[current_link];
+
+    // TODO: Extract this style fetching into a separate function
+    attr_t style = colors_get_color_pair_from_style(current.token->style) | A_UNDERLINE;
+
+    if (current.token->style.extra == PAGE_TOKEN_ATTR_BOLD) {
+        style |= A_BOLD;
+    }
+
+    wattron(win, style);
+    wmove(win, current.y, current.x);
+    waddstr(win, current.token->text);
+    wattroff(win, style);
+}
+
+void highlight_link(WINDOW *win) {
+    assert(current_link >= 0);
+    assert(current_link < MAX_PAGE_LINKS);
+
+    link_t current = rendered_links[current_link];
+
+    wmove(win, current.y, current.x);
+    // TODO: Add better styling, e.g. inverted token colorscheme
+    wattron(win, COLOR_PAIR(COLORSCHEME_WR) | A_BOLD | A_UNDERLINE);
+    waddnstr(win, current.token->text, current.token->length);
+    wattroff(win, COLOR_PAIR(COLORSCHEME_WR) | A_BOLD | A_UNDERLINE);
+    wrefresh(win);
+}
+
+void draw_next_link(WINDOW *win) {
+    if (current_link != -1) {
+        dehighlight_link(win);
+    }
+
+    if (current_link >= current_link_count - 1) {
+        current_link = -1;
+        return;
+    }
+
+    current_link++;
+    highlight_link(win);
+}
+
+void draw_previous_link(WINDOW *win) {
+    if (current_link != -1) {
+        dehighlight_link(win);
+    }
+
+    if (current_link == 0) {
+        current_link = -1;
+        return;
+    } else if (current_link == -1) {
+        current_link = current_link_count - 1;
+    } else {
+        current_link--;
+    }
+
+    highlight_link(win);
 }
 
 void draw_toggle_help(WINDOW *win, page_t *page) {

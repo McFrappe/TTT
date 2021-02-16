@@ -100,6 +100,12 @@ void ui_event_loop() {
             case 'h':
                 previous_page();
                 break;
+            case 'j':
+                draw_next_link(content_win);
+                break;
+            case 'k':
+                draw_previous_link(content_win);
+                break;
             case 'l':
                 next_page();
                 break;
