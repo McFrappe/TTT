@@ -108,6 +108,7 @@ void ui_event_loop() {
 
         switch (key) {
         case 'h':
+        case 'p':
             previous_page();
             break;
 
@@ -120,6 +121,7 @@ void ui_event_loop() {
             break;
 
         case 'l':
+        case 'n':
             next_page();
             break;
 
