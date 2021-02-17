@@ -39,6 +39,16 @@ static void next_page() {
     set_page(current_page_id);
 }
 
+static void follow_highlighted_link() {
+    uint16_t href = draw_get_highlighted_link_page_id();
+
+    if (href >= TTT_PAGE_HOME) {
+        set_page(href);
+    } else {
+        draw_error("ERROR: No or invalid link selected");
+    }
+}
+
 static void create_win() {
     content_win = newwin(
                       PAGE_LINES,
@@ -111,6 +121,9 @@ void ui_event_loop() {
                 break;
             case '?':
                 draw_toggle_help(content_win, current_page);
+                break;
+            case '\n':
+                follow_highlighted_link();
                 break;
             case 'q':
                 return;

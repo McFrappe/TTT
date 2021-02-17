@@ -185,6 +185,15 @@ static void print_center_fill(WINDOW *win, int *line, const char *str, attr_t at
     print_center(win, line, str, 0, attrs);
 }
 
+uint16_t draw_get_highlighted_link_page_id() {
+    if (current_link != -1 && current_link_count > 0) {
+        return rendered_links[current_link].token->href;
+    }
+
+    // Everything below TTT_PAGE_HOME is considered invalid
+    return 0;
+}
+
 void draw_next_link(WINDOW *win) {
     if (current_link != -1 && current_link < current_link_count) {
         dehighlight_link(win);
@@ -229,14 +238,13 @@ void draw_refresh_current(WINDOW *win, page_t *page) {
 }
 
 
-void draw_error() {
-    const char *error_str = error_get_string();
-
-    if (!error_str) {
+void draw_error(const char *str) {
+    if (!str) {
         return;
     }
 
-    mvaddstr(LINES - 1, 1, error_str);
+    mvaddstr(LINES - 1, 1, str);
+    refresh();
 }
 
 void draw_help(WINDOW *win) {
@@ -267,7 +275,7 @@ void draw_empty_page(WINDOW *win) {
 
 void draw_main(WINDOW *win, page_t *page) {
     if (error_is_set()) {
-        draw_error();
+        draw_error(error_get_string());
     }
 
     if (!page || !page->tokens) {
@@ -289,6 +297,7 @@ void draw_main(WINDOW *win, page_t *page) {
 }
 
 void draw(WINDOW *win, view_t view, page_t *page) {
+    clear();
     wclear(win);
     wattron(win, COLOR_PAIR(COLORSCHEME_DEFAULT));
 
