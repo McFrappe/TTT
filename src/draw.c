@@ -30,7 +30,7 @@ void terminate_rendered_link_list() {
     rendered_links[current_link].token = NULL;
 }
 
-void draw_token(WINDOW *win, page_token_t *token) {
+void draw_token(WINDOW *win, page_token_t *token, bool save_link) {
     attr_t style = colors_get_color_pair_from_style(token->style);
 
     if (token->style.extra != -1) {
@@ -39,7 +39,10 @@ void draw_token(WINDOW *win, page_token_t *token) {
 
     if (token->type == PAGE_TOKEN_LINK) {
         style |= A_UNDERLINE;
-        save_rendered_link(win, token);
+
+        if (save_link) {
+            save_rendered_link(win, token);
+        }
     }
 
     wattron(win, style);
@@ -207,7 +210,7 @@ void draw_main(WINDOW *win, page_t *page) {
     current_link_count = 0;
 
     while (cursor) {
-        draw_token(win, cursor);
+        draw_token(win, cursor, true);
         cursor = cursor->next;
     }
 
@@ -249,7 +252,7 @@ void dehighlight_link(WINDOW *win) {
     link_t current = rendered_links[current_link];
 
     wmove(win, current.y, current.x);
-    draw_token(win, current.token);
+    draw_token(win, current.token, false);
 }
 
 void highlight_link(WINDOW *win) {
@@ -270,7 +273,7 @@ void highlight_link(WINDOW *win) {
 }
 
 void draw_next_link(WINDOW *win) {
-    if (current_link != -1) {
+    if (current_link != -1 && current_link < current_link_count) {
         dehighlight_link(win);
     }
 
