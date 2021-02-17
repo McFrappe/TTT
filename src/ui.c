@@ -107,26 +107,32 @@ void ui_event_loop() {
         key = wgetch(content_win);
 
         switch (key) {
-            case 'h':
-                previous_page();
-                break;
-            case 'j':
-                draw_next_link(content_win);
-                break;
-            case 'k':
-                draw_previous_link(content_win);
-                break;
-            case 'l':
-                next_page();
-                break;
-            case '?':
-                draw_toggle_help(content_win, current_page);
-                break;
-            case '\n':
-                follow_highlighted_link();
-                break;
-            case 'q':
-                return;
+        case 'h':
+            previous_page();
+            break;
+
+        case 'j':
+            draw_next_link(content_win);
+            break;
+
+        case 'k':
+            draw_previous_link(content_win);
+            break;
+
+        case 'l':
+            next_page();
+            break;
+
+        case '?':
+            draw_toggle_help(content_win, current_page);
+            break;
+
+        case '\n':
+            follow_highlighted_link();
+            break;
+
+        case 'q':
+            return;
         }
     }
 }

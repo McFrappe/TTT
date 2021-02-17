@@ -22,7 +22,6 @@ static void save_rendered_link(WINDOW *win, page_token_t *token) {
 
     getyx(win, rendered_links[current_link_count].y, rendered_links[current_link_count].x);
     rendered_links[current_link_count].token = token;
-
     current_link_count++;
 }
 
@@ -57,9 +56,7 @@ static void draw_token(WINDOW *win, page_token_t *token, bool save_link) {
 static void dehighlight_link(WINDOW *win) {
     assert(current_link >= 0);
     assert(current_link < MAX_PAGE_LINKS);
-
     link_t current = rendered_links[current_link];
-
     wmove(win, current.y, current.x);
     draw_token(win, current.token, false);
 }
@@ -67,13 +64,9 @@ static void dehighlight_link(WINDOW *win) {
 static void highlight_link(WINDOW *win) {
     assert(current_link >= 0);
     assert(current_link < MAX_PAGE_LINKS);
-
     link_t current = rendered_links[current_link];
-
     wmove(win, current.y, current.x);
-
     attr_t style = COLOR_PAIR(COLORSCHEME_BW);
-
     // TODO: Add better styling, e.g. inverted token colorscheme
     wattron(win, style | A_BOLD | A_UNDERLINE);
     waddnstr(win, current.token->text, current.token->length);
@@ -307,16 +300,16 @@ void draw(WINDOW *win, view_t view, page_t *page) {
     }
 
     switch (view) {
-        case VIEW_MAIN:
-            draw_main(win, page);
-            break;
+    case VIEW_MAIN:
+        draw_main(win, page);
+        break;
 
-        case VIEW_HELP:
-            draw_help(win);
-            break;
+    case VIEW_HELP:
+        draw_help(win);
+        break;
 
-        default:
-            break;
+    default:
+        break;
     }
 
     current_view = view;
