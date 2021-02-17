@@ -12,8 +12,11 @@ typedef enum view {
     VIEW_HELP
 } view_t;
 
+void draw_error();
 void draw_next_link(WINDOW *win);
 void draw_previous_link(WINDOW *win);
-void draw(WINDOW *win, view_t current, page_t *page);
+void draw_help(WINDOW *win);
+void draw_empty_page(WINDOW *win);
 void draw_toggle_help(WINDOW *win, page_t *page);
 void draw_refresh_current(WINDOW *win, page_t *page);
+void draw(WINDOW *win, view_t current, page_t *page);
