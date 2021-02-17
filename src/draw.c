@@ -1,4 +1,5 @@
 #include "draw.h"
+#include "colors.h"
 
 #define MAX_PAGE_LINKS 32
 
@@ -27,6 +28,27 @@ void save_rendered_link(WINDOW *win, page_token_t *token) {
 
 void terminate_rendered_link_list() {
     rendered_links[current_link].token = NULL;
+}
+
+void draw_token(WINDOW *win, page_token_t *token) {
+    attr_t style = colors_get_color_pair_from_style(token->style);
+
+    if (token->style.extra != -1) {
+        style |= A_BOLD;
+    }
+
+    if (token->type == PAGE_TOKEN_LINK) {
+        style |= A_UNDERLINE;
+        save_rendered_link(win, token);
+    }
+
+    wattron(win, style);
+
+    if (token->text) {
+        wprintw(win, token->text);
+    }
+
+    wattroff(win, style);
 }
 
 /// @brief Prints a T in a 3x3 box
@@ -185,25 +207,7 @@ void draw_main(WINDOW *win, page_t *page) {
     current_link_count = 0;
 
     while (cursor) {
-        attr_t style = colors_get_color_pair_from_style(cursor->style);
-
-        if (cursor->style.extra != -1) {
-            style |= A_BOLD;
-        }
-
-        if (cursor->type == PAGE_TOKEN_LINK) {
-            style |= A_UNDERLINE;
-            save_rendered_link(win, cursor);
-        }
-
-        wattron(win, style);
-
-        if (cursor->text) {
-            wprintw(win, cursor->text);
-        }
-
-        wattroff(win, style);
-
+        draw_token(win, cursor);
         cursor = cursor->next;
     }
 
@@ -244,17 +248,8 @@ void dehighlight_link(WINDOW *win) {
 
     link_t current = rendered_links[current_link];
 
-    // TODO: Extract this style fetching into a separate function
-    attr_t style = colors_get_color_pair_from_style(current.token->style) | A_UNDERLINE;
-
-    if (current.token->style.extra == PAGE_TOKEN_ATTR_BOLD) {
-        style |= A_BOLD;
-    }
-
-    wattron(win, style);
     wmove(win, current.y, current.x);
-    waddstr(win, current.token->text);
-    wattroff(win, style);
+    draw_token(win, current.token);
 }
 
 void highlight_link(WINDOW *win) {
@@ -264,10 +259,13 @@ void highlight_link(WINDOW *win) {
     link_t current = rendered_links[current_link];
 
     wmove(win, current.y, current.x);
+
+    attr_t style = COLOR_PAIR(COLORSCHEME_BW);
+
     // TODO: Add better styling, e.g. inverted token colorscheme
-    wattron(win, COLOR_PAIR(COLORSCHEME_WR) | A_BOLD | A_UNDERLINE);
+    wattron(win, style | A_BOLD | A_UNDERLINE);
     waddnstr(win, current.token->text, current.token->length);
-    wattroff(win, COLOR_PAIR(COLORSCHEME_WR) | A_BOLD | A_UNDERLINE);
+    wattroff(win, style | A_BOLD | A_UNDERLINE);
     wrefresh(win);
 }
 
