@@ -1,9 +1,79 @@
 #include "draw.h"
 
+#define MAX_PAGE_LINKS 32
+
+// Stores the position and length of a clickable link
+typedef struct {
+    int x, y;
+    page_token_t *token;
+} link_t;
+
 static view_t current_view;
 
+static int current_link = -1;
+static int current_link_count = 0;
+static link_t rendered_links[MAX_PAGE_LINKS];
+
+static void save_rendered_link(WINDOW *win, page_token_t *token) {
+    if (current_link_count >= MAX_PAGE_LINKS - 1) {
+        return;
+    }
+
+    getyx(win, rendered_links[current_link_count].y, rendered_links[current_link_count].x);
+    rendered_links[current_link_count].token = token;
+    current_link_count++;
+}
+
+static void terminate_rendered_link_list() {
+    rendered_links[current_link].token = NULL;
+}
+
+static void draw_token(WINDOW *win, page_token_t *token, bool save_link) {
+    attr_t style = colors_get_color_pair_from_style(token->style);
+
+    if (token->style.extra != -1) {
+        style |= A_BOLD;
+    }
+
+    if (token->type == PAGE_TOKEN_LINK) {
+        style |= A_UNDERLINE;
+
+        if (save_link) {
+            save_rendered_link(win, token);
+        }
+    }
+
+    wattron(win, style);
+
+    if (token->text) {
+        wprintw(win, token->text);
+    }
+
+    wattroff(win, style);
+}
+
+static void dehighlight_link(WINDOW *win) {
+    assert(current_link >= 0);
+    assert(current_link < MAX_PAGE_LINKS);
+    link_t current = rendered_links[current_link];
+    wmove(win, current.y, current.x);
+    draw_token(win, current.token, false);
+}
+
+static void highlight_link(WINDOW *win) {
+    assert(current_link >= 0);
+    assert(current_link < MAX_PAGE_LINKS);
+    link_t current = rendered_links[current_link];
+    wmove(win, current.y, current.x);
+    attr_t style = COLOR_PAIR(COLORSCHEME_BW);
+    wattron(win, style | A_BOLD | A_UNDERLINE);
+    waddnstr(win, current.token->text, current.token->length);
+    wattroff(win, style | A_BOLD | A_UNDERLINE);
+    wrefresh(win);
+}
+
 /// @brief Prints a T in a 3x3 box
-void print_logo_letter(WINDOW *win, int line, int *col) {
+static void print_logo_letter(WINDOW *win, int line, int *col) {
     wattron(win, COLOR_PAIR(COLORSCHEME_BW) | A_UNDERLINE);
     wmove(win, line, *col);
 
@@ -23,7 +93,7 @@ void print_logo_letter(WINDOW *win, int line, int *col) {
     *col += 3 + PAGE_SIDE_PADDING;
 }
 
-void fill_rows(WINDOW *win, int *line, int rows, attr_t attr) {
+static void fill_rows(WINDOW *win, int *line, int rows, attr_t attr) {
     wattron(win, attr);
     wmove(win, *line, PAGE_SIDE_PADDING);
 
@@ -39,7 +109,7 @@ void fill_rows(WINDOW *win, int *line, int rows, attr_t attr) {
     *line += rows;
 }
 
-void print_logo(WINDOW *win, int *line) {
+static void print_logo(WINDOW *win, int *line) {
     int col = PAGE_SIDE_PADDING_LG;
     fill_rows(win, line, 4, COLOR_PAIR(COLORSCHEME_YBL));
     *line -= 3;
@@ -52,7 +122,7 @@ void print_logo(WINDOW *win, int *line) {
     *line += 3;
 }
 
-void print_keybinding(WINDOW *win, int *line, const char *desc, const char *key) {
+static void print_keybinding(WINDOW *win, int *line, const char *desc, const char *key) {
     int desc_length = strlen(desc);
     int key_length = strlen(key);
     int dots = PAGE_COLS - desc_length - key_length - 2 * (PAGE_SIDE_PADDING);
@@ -69,7 +139,7 @@ void print_keybinding(WINDOW *win, int *line, const char *desc, const char *key)
     *line += 1;
 }
 
-void print_bold_title(WINDOW *win, int *line, const char *title) {
+static void print_bold_title(WINDOW *win, int *line, const char *title) {
     // Add empty line above
     *line += 1;
     wattron(win, A_BOLD | COLOR_PAIR(COLORSCHEME_YX));
@@ -78,14 +148,14 @@ void print_bold_title(WINDOW *win, int *line, const char *title) {
     *line += 1;
 }
 
-void print_toprow(WINDOW *win, int *line, const char *id, const char *title) {
+static void print_toprow(WINDOW *win, int *line, const char *id, const char *title) {
     wattron(win, COLOR_PAIR(COLORSCHEME_DEFAULT));
     mvwprintw(win, *line, PAGE_SIDE_PADDING, id);
     mvwprintw(win, *line, strlen(id) + 1 + PAGE_SIDE_PADDING, title);
     *line += 1;
 }
 
-void print_center(WINDOW *win, int *line, const char *str, int side_padding, attr_t attrs) {
+static void print_center(WINDOW *win, int *line, const char *str, int side_padding, attr_t attrs) {
     int str_length = strlen(str);
     int center_start = (PAGE_COLS - str_length) / 2 + PAGE_SIDE_PADDING;
     wattron(win, attrs);
@@ -100,31 +170,83 @@ void print_center(WINDOW *win, int *line, const char *str, int side_padding, att
     *line += 1;
 }
 
-void print_center_fill(WINDOW *win, int *line, const char *str, attr_t attrs) {
+static void print_center_fill(WINDOW *win, int *line, const char *str, attr_t attrs) {
     fill_rows(win, line, 1, attrs);
     *line -= 1;
     print_center(win, line, str, 0, attrs);
 }
 
-void draw_error() {
-    const char *error_str = error_get_string();
+uint16_t draw_get_highlighted_link_page_id() {
+    if (current_link != -1 && current_link_count > 0) {
+        return rendered_links[current_link].token->href;
+    }
 
-    if (!error_str) {
+    // Everything below TTT_PAGE_HOME is considered invalid
+    return 0;
+}
+
+void draw_next_link(WINDOW *win) {
+    if (current_link != -1 && current_link < current_link_count) {
+        dehighlight_link(win);
+    }
+
+    if (current_link >= current_link_count - 1) {
+        current_link = -1;
         return;
     }
 
-    mvaddstr(LINES - 1, 1, error_str);
+    current_link++;
+    highlight_link(win);
 }
 
-static void draw_help(WINDOW *win) {
+void draw_previous_link(WINDOW *win) {
+    if (current_link != -1) {
+        dehighlight_link(win);
+    }
+
+    if (current_link == 0) {
+        current_link = -1;
+        return;
+    } else if (current_link == -1) {
+        current_link = current_link_count - 1;
+    } else {
+        current_link--;
+    }
+
+    highlight_link(win);
+}
+
+void draw_toggle_help(WINDOW *win, page_t *page) {
+    if (current_view == VIEW_HELP) {
+        draw(win, VIEW_MAIN, page);
+    } else {
+        draw(win, VIEW_HELP, page);
+    }
+}
+
+void draw_refresh_current(WINDOW *win, page_t *page) {
+    draw(win, current_view, page);
+}
+
+
+void draw_error(const char *str) {
+    if (!str) {
+        return;
+    }
+
+    mvaddstr(LINES - 1, 1, str);
+    refresh();
+}
+
+void draw_help(WINDOW *win) {
     int line = 0;
     print_toprow(win, &line, "0", "Keybindings");
     print_logo(win, &line);
     print_bold_title(win, &line, "Navigation");
-    print_keybinding(win, &line, "previous page", "h");
+    print_keybinding(win, &line, "previous page", "h/p");
     print_keybinding(win, &line, "select next link on page", "j");
     print_keybinding(win, &line, "select previous link on page", "k");
-    print_keybinding(win, &line, "next page", "l");
+    print_keybinding(win, &line, "next page", "l/n");
     print_keybinding(win, &line, "show index page", "i");
     print_keybinding(win, &line, "go to selected link", "enter");
     print_bold_title(win, &line, "Command mode");
@@ -138,13 +260,13 @@ static void draw_help(WINDOW *win) {
     print_center_fill(win, &line, "? to close", COLOR_PAIR(COLORSCHEME_YBL));
 }
 
-static void draw_empty_page(WINDOW *win) {
+void draw_empty_page(WINDOW *win) {
     mvwprintw(win, 0, 0, "Empty page!");
 }
 
 void draw_main(WINDOW *win, page_t *page) {
     if (error_is_set()) {
-        draw_error();
+        draw_error(error_get_string());
     }
 
     if (!page || !page->tokens) {
@@ -154,31 +276,19 @@ void draw_main(WINDOW *win, page_t *page) {
 
     page_token_t *cursor = page->tokens;
     wmove(win, 0, 0);
+    current_link = -1;
+    current_link_count = 0;
 
     while (cursor) {
-        attr_t style = colors_get_color_pair_from_style(cursor->style);
-
-        if (cursor->style.extra != -1) {
-            style |= A_BOLD;
-        }
-
-        if (cursor->type == PAGE_TOKEN_LINK) {
-            style |= A_UNDERLINE;
-        }
-
-        wattron(win, style);
-
-        if (cursor->text) {
-            wprintw(win, cursor->text);
-        }
-
-        wattroff(win, style);
-
+        draw_token(win, cursor, true);
         cursor = cursor->next;
     }
+
+    terminate_rendered_link_list();
 }
 
 void draw(WINDOW *win, view_t view, page_t *page) {
+    clear();
     wclear(win);
     wattron(win, COLOR_PAIR(COLORSCHEME_DEFAULT));
 
@@ -188,32 +298,20 @@ void draw(WINDOW *win, view_t view, page_t *page) {
     }
 
     switch (view) {
-        case VIEW_MAIN:
-            draw_main(win, page);
-            break;
+    case VIEW_MAIN:
+        draw_main(win, page);
+        break;
 
-        case VIEW_HELP:
-            draw_help(win);
-            break;
+    case VIEW_HELP:
+        draw_help(win);
+        break;
 
-        default:
-            break;
+    default:
+        break;
     }
 
     current_view = view;
     wattroff(win, COLOR_PAIR(COLORSCHEME_DEFAULT));
     refresh();
     wrefresh(win);
-}
-
-void draw_toggle_help(WINDOW *win, page_t *page) {
-    if (current_view == VIEW_HELP) {
-        draw(win, VIEW_MAIN, page);
-    } else {
-        draw(win, VIEW_HELP, page);
-    }
-}
-
-void draw_refresh_current(WINDOW *win, page_t *page) {
-    draw(win, current_view, page);
 }

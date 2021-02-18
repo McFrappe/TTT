@@ -39,6 +39,16 @@ static void next_page() {
     set_page(current_page_id);
 }
 
+static void follow_highlighted_link() {
+    uint16_t href = draw_get_highlighted_link_page_id();
+
+    if (href >= TTT_PAGE_HOME) {
+        set_page(href);
+    } else {
+        draw_error("ERROR: No or invalid link selected");
+    }
+}
+
 static void create_win() {
     content_win = newwin(
                       PAGE_LINES,
@@ -97,17 +107,34 @@ void ui_event_loop() {
         key = wgetch(content_win);
 
         switch (key) {
-            case 'h':
-                previous_page();
-                break;
-            case 'l':
-                next_page();
-                break;
-            case '?':
-                draw_toggle_help(content_win, current_page);
-                break;
-            case 'q':
-                return;
+        case 'h':
+        case 'p':
+            previous_page();
+            break;
+
+        case 'j':
+            draw_next_link(content_win);
+            break;
+
+        case 'k':
+            draw_previous_link(content_win);
+            break;
+
+        case 'l':
+        case 'n':
+            next_page();
+            break;
+
+        case '?':
+            draw_toggle_help(content_win, current_page);
+            break;
+
+        case '\n':
+            follow_highlighted_link();
+            break;
+
+        case 'q':
+            return;
         }
     }
 }

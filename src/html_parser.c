@@ -54,7 +54,6 @@ static void save_current_text_to_token(page_t *page, page_token_t *token, char *
         }
 
         set_token_text(token, buf, *i);
-
         (*i) = 0;
         buf[0] = '\0';
     }
@@ -90,12 +89,10 @@ static void replace_unicode_escape_sequence(const char *html_content, int *start
     } else {
         char error[256];
         snprintf(error, 256, "ERROR: Found unhandled unicode escape sequence: %.6s", sequence_start);
-
         error_set_with_string(
             TTT_ERROR_HTML_PARSER_FAILED,
             error
         );
-
         // There is no need to die if we found an unhandled escape sequence,
         // but we should make sure to show an error so that it can be fixed
         (*dest)[*dest_position] = 'X';
@@ -311,14 +308,12 @@ static bool parse_span_tag(page_t *page, char **cursor) {
 
     // Move to first character inside the span-tag
     next_token(cursor);
-
     bool should_create_new_token = false;
 
     // Move to the end of the span-tag
     while (**cursor != '\0') {
         if (is_newline(cursor)) {
             save_current_text_to_token(page, token, text_buf, &i, &should_create_new_token);
-
             // Move to next non-newline character
             next_n_token(cursor, NEW_LINE_SEQUENCE_LENGTH);
 

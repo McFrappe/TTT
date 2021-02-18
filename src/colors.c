@@ -2,7 +2,6 @@
 
 void colors_initialize(bool overwrite_colors, bool transparent_background) {
     short background_color = COLOR_BLACK;
-
     start_color();
 
     if (overwrite_colors) {
@@ -17,7 +16,6 @@ void colors_initialize(bool overwrite_colors, bool transparent_background) {
         init_color(COLOR_WHITE, 1000, 1000, 1000);
         init_color(COLOR_CYAN, 0, 1000, 1000);
         init_color(COLOR_RED, 1000, 0, 0);
-
         init_pair(COLORSCHEME_BW,       COLOR_BLACK,    COLOR_WHITE);
         init_pair(COLORSCHEME_WBL,      COLOR_WHITE,    COLOR_BLUE);
         init_pair(COLORSCHEME_YBL,      COLOR_YELLOW,   COLOR_BLUE);
@@ -25,7 +23,6 @@ void colors_initialize(bool overwrite_colors, bool transparent_background) {
         init_pair(COLORSCHEME_WR,       COLOR_WHITE,    COLOR_RED);
     } else {
         use_default_colors();
-
         // Assume that the colors does not have sufficient contrast
         // and use COLOR_BLACK as text color for all text on non-default backgrounds.
         // This is almost always necessary when you use pywal.
