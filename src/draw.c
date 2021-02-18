@@ -1,5 +1,4 @@
 #include "draw.h"
-#include "colors.h"
 
 #define MAX_PAGE_LINKS 32
 
@@ -67,7 +66,6 @@ static void highlight_link(WINDOW *win) {
     link_t current = rendered_links[current_link];
     wmove(win, current.y, current.x);
     attr_t style = COLOR_PAIR(COLORSCHEME_BW);
-    // TODO: Add better styling, e.g. inverted token colorscheme
     wattron(win, style | A_BOLD | A_UNDERLINE);
     waddnstr(win, current.token->text, current.token->length);
     wattroff(win, style | A_BOLD | A_UNDERLINE);
