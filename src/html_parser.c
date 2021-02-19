@@ -99,7 +99,8 @@ static void replace_unicode_escape_sequence(const char *html_content, int *start
         (*dest)[*dest_position] = 'X';
     }
 
-    (*start_index) += UNICODE_ESCAPE_SEQUENCE_LENGTH;
+    // Position the cursor on the last character of the escape sequence
+    (*start_index) += UNICODE_ESCAPE_SEQUENCE_LENGTH - 1;
     (*dest_position) += 1;
 }
 
@@ -120,6 +121,10 @@ static void replace_html_escape_sequence(const char *html_content, int *start_in
 
     if (strcmp(buf, "&amp;") == 0) {
         (*dest)[*dest_position] = '&';
+    } else if (strcmp(buf, "&lt;") == 0) {
+        (*dest)[*dest_position] = '<';
+    } else if (strcmp(buf, "&gt;") == 0) {
+        (*dest)[*dest_position] = '>';
     } else {
         char error[256];
         snprintf(error, 256, "ERROR: Found unhandled html escape sequence: %s", buf);
@@ -130,7 +135,8 @@ static void replace_html_escape_sequence(const char *html_content, int *start_in
         (*dest)[*dest_position] = 'X';
     }
 
-    (*start_index) += i;
+    // Position the cursor on the last character of the escape sequence
+    (*start_index) += i - 1;
     (*dest_position) += 1;
 }
 
@@ -149,21 +155,22 @@ static bool clean_html_content(char *buf, const char *html_content, size_t size)
     }
 
     // Skip first and last characters to remove div-tag
-    for (; i < end; i++, buf_position++) {
+    for (; i < end; i++) {
         // Only remove backslashes that are not part of the newline escape sequence
         if (html_content[i] == '\\' && html_content[i + 1] != 'n') {
-            // TODO: Readd the unicode escape sequence code here
-            // Move to next non-backslash character
             if (html_content[i + 1] == 'u') {
                 replace_unicode_escape_sequence(html_content, &i, &buf, &buf_position);
+                continue;
             } else {
                 i++;
             }
         } else if (html_content[i] == '&' && html_content[i + 1] != ' ') {
             replace_html_escape_sequence(html_content, &i, &buf, &buf_position);
+            continue;
         }
 
         buf[buf_position] = html_content[i];
+        buf_position++;
     }
 
     buf[buf_position] = '\0';

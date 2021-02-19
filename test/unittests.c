@@ -714,7 +714,7 @@ void test_page_html_span_separator() {
 }
 
 void test_page_html_unicode_escape_sequence() {
-    const char *str = "<span class=\"W\">Johnson Johnson har ans\\u00f6kt om att f\\u00e5</span>";
+    const char *str = "<span class=\"W\">\\u00f6\\u00e5\\u00c4 \\u00c5 \\u00d6</span>";
     page_t *page = page_create_empty();
     html_parser_get_page_tokens(page, str, strlen(str));
 
@@ -723,7 +723,7 @@ void test_page_html_unicode_escape_sequence() {
     page_token_t *cursor = page->tokens;
 
     assert_token(&cursor,
-        "Johnson Johnson har ansokt om att fa",
+        "oaA A O",
         NO_HREF,
         PAGE_TOKEN_TEXT,
         PAGE_TOKEN_ATTR_BG_BLACK,
@@ -738,7 +738,7 @@ void test_page_html_unicode_escape_sequence() {
 }
 
 void test_page_html_escape_sequence() {
-    const char *str = "<span class=\"W\">Johnson &amp; Johnson har anskt om att</span>";
+    const char *str = "<span class=\"W\">&amp;&lt;&gt; &amp; &lt; &gt;</span>";
     page_t *page = page_create_empty();
     html_parser_get_page_tokens(page, str, strlen(str));
 
@@ -747,7 +747,7 @@ void test_page_html_escape_sequence() {
     page_token_t *cursor = page->tokens;
 
     assert_token(&cursor,
-        "Johnson & Johnson har anskt om att",
+        "&<> & < >",
         NO_HREF,
         PAGE_TOKEN_TEXT,
         PAGE_TOKEN_ATTR_BG_BLACK,
