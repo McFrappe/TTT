@@ -1,18 +1,19 @@
 #include "html_parser.h"
 
-#define MAX_TOKEN_TEXT_LENGTH       256
-#define MIN_HTML_CONTENT_LENGTH     7   // e.g. <a></a>
-#define NEW_LINE_SEQUENCE_LENGTH    2   // \n
-#define DIV_TAG_START_LENGTH        20  // <div class=\"root\"> = 20 chars
-#define DIV_TAG_END_LENGTH          9   // \n<\/div>
-#define SPAN_TAG_END_LENGTH         7   // </span>
-#define SPAN_TAG_CLASS_OFFSET       13  // <span class="
-#define A_TAG_HREF_OFFSET           10  // <a href="/
-#define A_TAG_END_LENGTH            4   // </a>
-#define HREF_PAGE_ID_LENGTH         3   // e.g. 100
-#define HEADER_TAG_CLASS_OFFSET     11  // <h1 class="
-#define HEADER_TAG_END_LENGTH       5   // </h1>
-#define UNICODE_ESCAPE_SEQUENCE_LENGTH 6 // e.g. \u00f6
+#define MAX_TOKEN_TEXT_LENGTH           256
+#define MIN_HTML_CONTENT_LENGTH         7   // e.g. <a></a>
+#define NEW_LINE_SEQUENCE_LENGTH        2   // \n
+#define DIV_TAG_START_LENGTH            20  // <div class=\"root\"> = 20 chars
+#define DIV_TAG_END_LENGTH              9   // \n<\/div>
+#define SPAN_TAG_END_LENGTH             7   // </span>
+#define SPAN_TAG_CLASS_OFFSET           13  // <span class="
+#define A_TAG_HREF_OFFSET               10  // <a href="/
+#define A_TAG_END_LENGTH                4   // </a>
+#define HREF_PAGE_ID_LENGTH             3   // e.g. 100
+#define HEADER_TAG_CLASS_OFFSET         11  // <h1 class="
+#define HEADER_TAG_END_LENGTH           5   // </h1>
+#define UNICODE_ESCAPE_SEQUENCE_LENGTH  6   // e.g. \u00f6
+#define MAX_HTML_ESCAPE_SEQUENCE_LENGTH 26  // e.g. &ClockwiseContourIntegral;
 
 static void next_token(char **cursor) {
     (*cursor) += 1;
@@ -102,6 +103,37 @@ static void replace_unicode_escape_sequence(const char *html_content, int *start
     (*dest_position) += 1;
 }
 
+static void replace_html_escape_sequence(const char *html_content, int *start_index, char **dest, int *dest_position) {
+    const char *sequence_start = html_content + (*start_index);
+
+    int i = 0;
+    char buf[MAX_HTML_ESCAPE_SEQUENCE_LENGTH];
+
+    while (sequence_start[i] != ';' && i < MAX_HTML_ESCAPE_SEQUENCE_LENGTH) {
+        buf[i] = sequence_start[i];
+        i++;
+    }
+
+    buf[i] = ';';
+    i++;
+    buf[i] = '\0';
+
+    if (strcmp(buf, "&amp;") == 0) {
+        (*dest)[*dest_position] = '&';
+    } else {
+        char error[256];
+        snprintf(error, 256, "ERROR: Found unhandled html escape sequence: %s", buf);
+        error_set_with_string(
+            TTT_ERROR_HTML_PARSER_FAILED,
+            error
+        );
+        (*dest)[*dest_position] = 'X';
+    }
+
+    (*start_index) += i;
+    (*dest_position) += 1;
+}
+
 /// @brief Removes unnecessary backslashes and div-tag
 static bool clean_html_content(char *buf, const char *html_content, size_t size) {
     assert(buf != NULL);
@@ -127,6 +159,8 @@ static bool clean_html_content(char *buf, const char *html_content, size_t size)
             } else {
                 i++;
             }
+        } else if (html_content[i] == '&' && html_content[i + 1] != ' ') {
+            replace_html_escape_sequence(html_content, &i, &buf, &buf_position);
         }
 
         buf[buf_position] = html_content[i];

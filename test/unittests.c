@@ -863,6 +863,54 @@ void test_page_html_span_separator() {
     error_reset();
 }
 
+void test_page_html_unicode_escape_sequence() {
+    const char *str = "<span class=\"W\">Johnson Johnson har ans\\u00f6kt om att f\\u00e5</span>";
+    page_t *page = page_create_empty();
+    html_parser_get_page_tokens(page, str, strlen(str));
+
+    assert_parsed_page_tokens(page);
+
+    page_token_t *cursor = page->tokens;
+
+    assert_token(&cursor,
+        "Johnson Johnson har ansokt om att fa",
+        NO_HREF,
+        PAGE_TOKEN_TEXT,
+        PAGE_TOKEN_ATTR_BG_BLACK,
+        PAGE_TOKEN_ATTR_WHITE,
+        PAGE_TOKEN_ATTR_NONE
+    );
+
+    assert_token_end(cursor);
+
+    page_destroy(page);
+    error_reset();
+}
+
+void test_page_html_escape_sequence() {
+    const char *str = "<span class=\"W\">Johnson &amp; Johnson har anskt om att</span>";
+    page_t *page = page_create_empty();
+    html_parser_get_page_tokens(page, str, strlen(str));
+
+    assert_parsed_page_tokens(page);
+
+    page_token_t *cursor = page->tokens;
+
+    assert_token(&cursor,
+        "Johnson & Johnson har anskt om att",
+        NO_HREF,
+        PAGE_TOKEN_TEXT,
+        PAGE_TOKEN_ATTR_BG_BLACK,
+        PAGE_TOKEN_ATTR_WHITE,
+        PAGE_TOKEN_ATTR_NONE
+    );
+
+    assert_token_end(cursor);
+
+    page_destroy(page);
+    error_reset();
+}
+
 void test_page_html_1() {
     page_t *page = page_create_empty();
     html_parser_get_page_tokens(page, HTML_DATA_PAGE_1.data, HTML_DATA_PAGE_1.length);
@@ -1132,6 +1180,8 @@ int main() {
     CU_add_test(html_parser_suite, "test_page_html_newline_whitespace", test_page_html_newline_whitespace);
     CU_add_test(html_parser_suite, "test_page_html_span_separator", test_page_html_span_separator);
     CU_add_test(html_parser_suite, "test_page_html_nested_span_tag", test_page_html_nested_span_tag);
+    CU_add_test(html_parser_suite, "test_page_html_escape_sequence", test_page_html_escape_sequence);
+    CU_add_test(html_parser_suite, "test_page_html_unicode_escape_sequence", test_page_html_unicode_escape_sequence);
     CU_add_test(html_parser_suite, "test_page_html_1", test_page_html_1);
     CU_add_test(html_parser_suite, "test_page_html_3", test_page_html_3);
 
