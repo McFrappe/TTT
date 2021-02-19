@@ -249,6 +249,7 @@ void draw_help(WINDOW *win) {
     print_keybinding(win, &line, "next page", "l/n");
     print_keybinding(win, &line, "show index page", "i");
     print_keybinding(win, &line, "go to selected link", "enter");
+    print_keybinding(win, &line, "go back to previous page", "u/b");
     print_bold_title(win, &line, "Command mode");
     print_keybinding(win, &line, "enter command mode", ":");
     print_keybinding(win, &line, "go to page", ":<page-number>");

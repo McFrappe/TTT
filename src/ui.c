@@ -3,22 +3,39 @@
 // TODO: Add window buffer cache to prevent rerendering of pages when switching between VIEW_MAIN and VIEW_HELP
 // TODO: Add window where we will echo and take input
 static WINDOW *content_win;
+static int previous_page_index = -1;
 static int current_page_index = -1;
 static int current_page_id = TTT_PAGE_HOME;
 static page_t *current_page = NULL;
-static page_collection_t *current_collection;
+static page_collection_t *collection;
 
-static void set_page(uint16_t page) {
-    error_reset();
-
-    if (current_collection) {
-        page_collection_destroy(current_collection);
+static void set_page_index(int index) {
+    if (!collection || index == -1 || collection->size <= index) {
+        return;
     }
 
-    current_collection = api_get_page(page);
-    current_page_index = 0;
-    current_page = current_collection->pages[0];
+    previous_page_index = current_page_index;
+    current_page_index = index;
+    current_page = collection->pages[index];
     draw(content_win, VIEW_MAIN, current_page);
+}
+
+static void set_page(uint16_t id) {
+    error_reset();
+
+    page_t *page = api_get_page(id);
+
+    if (!page) {
+        if (error_is_set()) {
+            draw_error(error_get_string());
+        }
+
+        return;
+    }
+
+    page_collection_resize(collection, collection->size + 1);
+    collection->pages[collection->size - 1] = page;
+    set_page_index(collection->size - 1);
 }
 
 static void previous_page() {
@@ -37,6 +54,12 @@ static void next_page() {
 
     current_page_id += 1;
     set_page(current_page_id);
+}
+
+static void undo_follow_highlighted_link() {
+    if (previous_page_index != -1) {
+        set_page_index(previous_page_index);
+    }
 }
 
 static void follow_highlighted_link() {
@@ -92,6 +115,7 @@ void ui_initialize(bool overwrite_colors, bool transparent_background) {
     nodelay(stdscr, TRUE);
     curs_set(0);
     api_initialize();
+    collection = page_collection_create(0);
     colors_initialize(overwrite_colors, transparent_background);
     create_win();
     signal(SIGWINCH, resize_handler);
@@ -133,6 +157,11 @@ void ui_event_loop() {
             follow_highlighted_link();
             break;
 
+        case 'u':
+        case 'b':
+            undo_follow_highlighted_link();
+            break;
+
         case 'q':
             return;
         }
@@ -140,7 +169,7 @@ void ui_event_loop() {
 }
 
 void ui_destroy() {
-    page_collection_destroy(current_collection);
+    page_collection_destroy(collection);
     delwin(content_win);
     endwin();
 }

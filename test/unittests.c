@@ -6,8 +6,6 @@
 #include "../src/html_parser.h"
 
 #define JSON_DATA_PAGE_PATH "./test/data/index.json"
-#define JSON_DATA_PAGE_RANGE_PATH "./test/data/range.json"
-#define JSON_DATA_PAGE_RANGE_LARGE_PATH "./test/data/range_large.json"
 #define HTML_DATA_PAGE_1_PATH "./test/data/page1.html"
 #define HTML_DATA_PAGE_2_PATH "./test/data/page2.html"
 #define HTML_DATA_PAGE_3_PATH "./test/data/page3.html"
@@ -20,8 +18,6 @@ typedef struct file_data {
 } file_data_t;
 
 static file_data_t JSON_DATA_PAGE;
-static file_data_t JSON_DATA_PAGE_RANGE;
-static file_data_t JSON_DATA_PAGE_RANGE_LARGE;
 static file_data_t HTML_DATA_PAGE_1;
 static file_data_t HTML_DATA_PAGE_2;
 static file_data_t HTML_DATA_PAGE_3;
@@ -181,38 +177,36 @@ void assert_token_end(page_token_t *cursor) {
 }
 
 void test_page_null_string() {
-    CU_ASSERT_PTR_NULL(parser_get_page_collection(NULL, 0));
+    CU_ASSERT_PTR_NULL(parser_get_page(NULL, 0));
     CU_ASSERT_TRUE(error_is_set());
     error_reset();
 }
 
 void test_page_empty_string() {
-    CU_ASSERT_PTR_NULL(parser_get_page_collection("", 0));
+    CU_ASSERT_PTR_NULL(parser_get_page("", 0));
     CU_ASSERT_TRUE(error_is_set());
     error_reset();
 }
 
 void test_page_empty_array() {
-    CU_ASSERT_PTR_NULL(parser_get_page_collection("[]", 2));
+    CU_ASSERT_PTR_NULL(parser_get_page("[]", 2));
     CU_ASSERT_TRUE(error_is_set());
     error_reset();
 }
 
 void test_page_object_without_array() {
-    CU_ASSERT_PTR_NULL(parser_get_page_collection("{}", 2));
+    CU_ASSERT_PTR_NULL(parser_get_page("{}", 2));
     CU_ASSERT_TRUE(error_is_set());
     error_reset();
 }
 
 void test_page_empty_title() {
     char *str = "[{\"title\": \"\"}]";
-    page_collection_t *collection = parser_get_page_collection(str, strlen(str));
+    page_t *page = parser_get_page(str, strlen(str));
     CU_ASSERT_FALSE(error_is_set());
 
-    assert_page_collection(collection, 1);
-
     assert_parsed_page(
-        collection->pages[0],
+        page,
         -1,
         -1,
         -1,
@@ -221,19 +215,17 @@ void test_page_empty_title() {
         false
     );
 
-    page_collection_destroy(collection);
+    page_destroy(page);
     error_reset();
 }
 
 void test_page_single_char_title() {
     char *str = "[{\"title\": \"x\"}]";
-    page_collection_t *collection = parser_get_page_collection(str, strlen(str));
+    page_t *page = parser_get_page(str, strlen(str));
     CU_ASSERT_FALSE(error_is_set());
 
-    assert_page_collection(collection, 1);
-
     assert_parsed_page(
-        collection->pages[0],
+        page,
         -1,
         -1,
         -1,
@@ -242,19 +234,17 @@ void test_page_single_char_title() {
         false
     );
 
-    page_collection_destroy(collection);
+    page_destroy(page);
     error_reset();
 }
 
 void test_page_invalid_keys() {
     char *str = "[{\"invalid\": \"asd\", \"xxx\": 100, \"yyy\": [\"zzz\"]}]";
-    page_collection_t *collection = parser_get_page_collection(str, strlen(str));
+    page_t *page = parser_get_page(str, strlen(str));
     CU_ASSERT_FALSE(error_is_set());
 
-    assert_page_collection(collection, 1);
-
     assert_parsed_page(
-        collection->pages[0],
+        page,
         -1,
         -1,
         -1,
@@ -263,20 +253,19 @@ void test_page_invalid_keys() {
         false
     );
 
-    page_collection_destroy(collection);
+    page_destroy(page);
     error_reset();
 }
 
 void test_page_large_content_array() {
     char *str = "[{\"content\": [\"xxx\", \"yyy\", \"zzz\"]}]";
-    page_collection_t *collection = parser_get_page_collection(str, strlen(str));
+    page_t *page = parser_get_page(str, strlen(str));
 
     // The content strings are invalid html and won't be parsed correctly
     CU_ASSERT_TRUE(error_is_set());
 
-    assert_page_collection(collection, 1);
     assert_parsed_page(
-        collection->pages[0],
+        page,
         -1,
         -1,
         -1,
@@ -285,7 +274,7 @@ void test_page_large_content_array() {
         false
     );
 
-    page_collection_destroy(collection);
+    page_destroy(page);
     error_reset();
 }
 
@@ -294,12 +283,11 @@ void test_page_invalid() {
     char *str = "[{\"num\":null,\"title\":null,\"content\":[],\"next_page\":null,\
                  \"prev_page\":null,\"date_updated_unix\":null,\
                  \"permalink\":\"https://texttv.nu/0/-0\",\"id\":null}]";
-    page_collection_t *collection = parser_get_page_collection(str, strlen(str));
+    page_t *page = parser_get_page(str, strlen(str));
     CU_ASSERT_TRUE(error_is_set());
 
-    assert_page_collection(collection, 1);
     assert_parsed_page(
-        collection->pages[0],
+        page,
         -1,
         -1,
         -1,
@@ -308,29 +296,27 @@ void test_page_invalid() {
         false
     );
 
-    page_collection_destroy(collection);
+    page_destroy(page);
     error_reset();
 }
 
 void test_page_collection_empty_objects() {
     char *str = "[{}, {}, {}, \"xxx\", \"yyy\", \"zzz\"]";
-    page_collection_t *collection = parser_get_page_collection(str, strlen(str));
+    page_t *page = parser_get_page(str, strlen(str));
     CU_ASSERT_TRUE(error_is_set());
-    CU_ASSERT_PTR_NULL(collection);
+    CU_ASSERT_PTR_NULL(page);
     error_reset();
 }
 
-// Validates the parsing of the file at JSON_DATA_PAGE_PATH
 void test_page_single() {
-    page_collection_t *collection = parser_get_page_collection(
+    page_t *page = parser_get_page(
         JSON_DATA_PAGE.data, JSON_DATA_PAGE.length
     );
 
     CU_ASSERT_FALSE(error_is_set());
 
-    assert_page_collection(collection, 1);
     assert_parsed_page(
-        collection->pages[0],
+        page,
         200,
         199,
         201,
@@ -339,143 +325,7 @@ void test_page_single() {
         true
     );
 
-    page_collection_destroy(collection);
-    error_reset();
-}
-
-// Validates the parsing of the file at JSON_DATA_PAGE_RANGE_PATH
-void test_page_range() {
-    page_collection_t *collection = parser_get_page_collection(
-        JSON_DATA_PAGE_RANGE.data, JSON_DATA_PAGE_RANGE.length
-    );
-
-    assert_page_collection(collection, 5);
-
-    assert_parsed_page(
-        collection->pages[0],
-        100,
-        100,
-        101,
-        1612004855,
-        "USA inf\\u00f6r munskyddskrav f\\u00f6r resande | Svensk test av virusmutationer dr\\u00f6jer | Inrikes",
-        true
-    );
-
-    assert_parsed_page(
-        collection->pages[1],
-        101,
-        100,
-        102,
-        1612004794,
-        "SVT Text",
-        true
-    );
-
-    assert_parsed_page(
-        collection->pages[2],
-        102,
-        101,
-        103,
-        1612007994,
-        "SVT Text",
-        true
-    );
-
-    assert_parsed_page(
-        collection->pages[3],
-        103,
-        102,
-        104,
-        1612007994,
-        "SVT Text",
-        true
-    );
-
-    assert_parsed_page(
-        collection->pages[4],
-        104,
-        103,
-        105,
-        1612004496,
-        "SVT Text",
-        true
-    );
-
-    page_collection_destroy(collection);
-    error_reset();
-}
-
-// Validates the parsing of the file at JSON_DATA_PAGE_RANGE_PATH
-void test_page_range_large() {
-    page_collection_t *collection = parser_get_page_collection(
-        JSON_DATA_PAGE_RANGE_LARGE.data, JSON_DATA_PAGE_RANGE_LARGE.length
-    );
-
-    CU_ASSERT_FALSE(error_is_set());
-
-    assert_page_collection(collection, 6);
-
-    assert_parsed_page(
-        collection->pages[0],
-        200,
-        199,
-        201,
-        1612004371,
-        "Svt",
-        true
-    );
-
-    assert_parsed_page(
-        collection->pages[1],
-        201,
-        200,
-        202,
-        1612028945,
-        "Svt",
-        true
-    );
-
-    assert_parsed_page(
-        collection->pages[2],
-        202,
-        201,
-        203,
-        1612028945,
-        "K\\u00e4lla:",
-        true
-    );
-
-    assert_parsed_page(
-        collection->pages[3],
-        203,
-        202,
-        204,
-        1612028945,
-        "K\\u00e4lla:",
-        true
-    );
-
-    assert_parsed_page(
-        collection->pages[4],
-        204,
-        203,
-        205,
-        1612028945,
-        "K\\u00e4lla:",
-        true
-    );
-
-    assert_parsed_page(
-        collection->pages[5],
-        205,
-        204,
-        206,
-        1612028945,
-        "K\\u00e4lla:",
-        true
-    );
-
-    page_collection_destroy(collection);
+    page_destroy(page);
     error_reset();
 }
 
@@ -1138,8 +988,6 @@ void test_page_html_3() {
 int main() {
     if (
         !load_test_data(&JSON_DATA_PAGE, JSON_DATA_PAGE_PATH) ||
-        !load_test_data(&JSON_DATA_PAGE_RANGE, JSON_DATA_PAGE_RANGE_PATH) ||
-        !load_test_data(&JSON_DATA_PAGE_RANGE_LARGE, JSON_DATA_PAGE_RANGE_LARGE_PATH) ||
         !load_test_data(&HTML_DATA_PAGE_1, HTML_DATA_PAGE_1_PATH) ||
         !load_test_data(&HTML_DATA_PAGE_2, HTML_DATA_PAGE_2_PATH) ||
         !load_test_data(&HTML_DATA_PAGE_3, HTML_DATA_PAGE_3_PATH)
@@ -1163,8 +1011,6 @@ int main() {
     CU_add_test(page_parser_suite, "test_page_collection_empty_objects", test_page_collection_empty_objects);
     CU_add_test(page_parser_suite, "test_page_large_content_array", test_page_large_content_array);
     CU_add_test(page_parser_suite, "test_page_single", test_page_single);
-    CU_add_test(page_parser_suite, "test_page_range", test_page_range);
-    CU_add_test(page_parser_suite, "test_page_range_large", test_page_range_large);
 
     CU_add_test(html_parser_suite, "test_page_html_null", test_page_html_null);
     CU_add_test(html_parser_suite, "test_page_html_invalid_start_tag", test_page_html_invalid_start_tag);
@@ -1190,8 +1036,6 @@ int main() {
     CU_cleanup_registry();
 
     destroy_test_data(&JSON_DATA_PAGE);
-    destroy_test_data(&JSON_DATA_PAGE_RANGE);
-    destroy_test_data(&JSON_DATA_PAGE_RANGE_LARGE);
     destroy_test_data(&HTML_DATA_PAGE_1);
     destroy_test_data(&HTML_DATA_PAGE_2);
     destroy_test_data(&HTML_DATA_PAGE_3);

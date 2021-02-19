@@ -265,7 +265,7 @@ static bool parse_whitespace(page_t *page, char **cursor, bool inherit_style) {
 }
 
 // TODO: Some text will be in h1 tags instead of span for some reason
-static bool parse_span_tag(page_t *page, char **cursor) {
+static bool parse_tag(page_t *page, char **cursor) {
     bool is_span = is_start_of_tag(cursor, 's');
     bool is_header = is_start_of_tag(cursor, 'h');
 
@@ -429,7 +429,7 @@ void html_parser_get_page_tokens(page_t *page, const char *html, size_t size) {
     }
 
     while ((*cursor) != '\0') {
-        if (!parse_span_tag(page, &cursor)) {
+        if (!parse_tag(page, &cursor)) {
             if (page->tokens) {
                 page_tokens_destroy(page);
                 page->tokens = NULL;

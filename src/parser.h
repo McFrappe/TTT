@@ -12,4 +12,4 @@
 #include "errors.h"
 #include "html_parser.h"
 
-page_collection_t *parser_get_page_collection(const char *data, size_t size);
+page_t *parser_get_page(const char *data, size_t size);

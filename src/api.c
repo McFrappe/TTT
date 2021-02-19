@@ -63,7 +63,7 @@ static void create_endpoint_url(char *buf, size_t buf_size, uint16_t start, uint
 
 
 // TODO: Return error(s) and display in UI
-static page_collection_t *make_request(uint16_t start, uint16_t end) {
+static page_t *make_request(uint16_t start, uint16_t end) {
     assert(start != 0);
 
     if (!curl) {
@@ -92,10 +92,9 @@ static page_collection_t *make_request(uint16_t start, uint16_t end) {
         return NULL;
     }
 
-    /* printf("Response body: %s\n", chunk.data); */
-    page_collection_t *collection = parser_get_page_collection(chunk.data, chunk.size);
+    page_t *page = parser_get_page(chunk.data, chunk.size);
     free(chunk.data);
-    return collection;
+    return page;
 }
 
 void api_initialize() {
@@ -108,19 +107,8 @@ void api_initialize() {
     }
 }
 
-page_collection_t *api_get_page(uint16_t page_id) {
+page_t *api_get_page(uint16_t page_id) {
     return make_request(page_id, 0);
-}
-
-page_collection_t *api_get_page_range(uint16_t start, uint16_t end) {
-    uint16_t range = end - start;
-
-    if (range > MAX_PAGE_COLLECTION_SIZE) {
-        // TODO: If the range is larger than the MAX, make several requests or error?
-        //       Requesting a large amount of pages will just hang the program for a long time
-    }
-
-    return make_request(start, end);
 }
 
 void api_destroy() {

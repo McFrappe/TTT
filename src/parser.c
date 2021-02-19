@@ -148,7 +148,7 @@ static page_t *get_page(const char *data, jsmntok_t **cursor) {
     return page;
 }
 
-page_collection_t *parser_get_page_collection(const char *data, size_t size) {
+page_t *parser_get_page(const char *data, size_t size) {
     if (!data || *data == '\0' || size == 0) {
         error_set_with_string(
             TTT_ERROR_PAGE_PARSER_FAILED,
@@ -171,35 +171,18 @@ page_collection_t *parser_get_page_collection(const char *data, size_t size) {
     }
 
     jsmntok_t *cursor = tokens;
-    size_t parsed_objects = 0;
-    size_t array_size = cursor->size;
-    page_collection_t *collection = page_collection_create(array_size);
 
-    for (size_t i = 0; i < array_size; i++) {
-        next_token(&cursor);
+    next_token(&cursor);
 
-        if (cursor->type == JSMN_OBJECT) {
-            page_t *page = get_page(data, &cursor);
+    // We only parse single pages, even if there are more than
+    // one page in the response data
+    if (cursor->type == JSMN_OBJECT) {
+        page_t *page = get_page(data, &cursor);
 
-            if (page) {
-                collection->pages[parsed_objects] = page;
-                parsed_objects++;
-            }
+        if (page) {
+            return page;
         }
     }
 
-    if (array_size > parsed_objects) {
-        if (parsed_objects == 0) {
-            error_set_with_string(
-                TTT_ERROR_PAGE_PARSER_FAILED,
-                "ERROR: No pages could be parsed"
-            );
-            page_collection_destroy(collection);
-            return NULL;
-        }
-
-        page_collection_resize(collection, parsed_objects);
-    }
-
-    return collection;
+    return NULL;
 }

@@ -22,6 +22,5 @@ typedef enum api_pages {
 } api_pages_t;
 
 void api_initialize();
-page_collection_t *api_get_page(uint16_t page);
-page_collection_t *api_get_page_range(uint16_t range_start, uint16_t range_end);
+page_t *api_get_page(uint16_t page);
 void api_destroy();
