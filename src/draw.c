@@ -14,6 +14,10 @@ static int current_link = -1;
 static int current_link_count = 0;
 static link_t rendered_links[MAX_PAGE_LINKS];
 
+static bool is_valid_link_index(int link_index) {
+    return link_index != -1 && current_link_count > 0 && link_index < current_link_count;
+}
+
 static void save_rendered_link(WINDOW *win, page_token_t *token) {
     if (current_link_count >= MAX_PAGE_LINKS - 1) {
         return;
@@ -58,6 +62,7 @@ static void dehighlight_link(WINDOW *win) {
     link_t current = rendered_links[current_link];
     wmove(win, current.y, current.x);
     draw_token(win, current.token, false);
+    wrefresh(win);
 }
 
 static void highlight_link(WINDOW *win) {
@@ -176,13 +181,32 @@ static void print_center_fill(WINDOW *win, int *line, const char *str, attr_t at
     print_center(win, line, str, 0, attrs);
 }
 
-uint16_t draw_get_highlighted_link_page_id() {
-    if (current_link != -1 && current_link_count > 0) {
-        return rendered_links[current_link].token->href;
+uint16_t draw_get_highlighted_link_href() {
+    if (!is_valid_link_index(current_link)) {
+        // Everything below TTT_PAGE_HOME is considered invalid
+        return 0;
     }
 
-    // Everything below TTT_PAGE_HOME is considered invalid
-    return 0;
+    return rendered_links[current_link].token->href;
+}
+
+int draw_get_highlighted_link_index() {
+    return current_link;
+}
+
+void draw_set_highlighted_link_index(WINDOW *win, int new_index) {
+    if (!is_valid_link_index(new_index)) {
+        return;
+    }
+
+    if (current_link == -1) {
+        current_link = new_index;
+        highlight_link(win);
+    } else {
+        // Could make a new function for this, but it is easier to use the existing one
+        current_link = new_index - 1;
+        draw_next_link(win);
+    }
 }
 
 void draw_next_link(WINDOW *win) {

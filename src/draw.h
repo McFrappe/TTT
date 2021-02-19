@@ -23,4 +23,7 @@ void draw(WINDOW *win, view_t current, page_t *page);
 
 /// @brief Returns the page id of the currently highlighted link
 /// @return page id or 0 if no link is selected
-uint16_t draw_get_highlighted_link_page_id();
+uint16_t draw_get_highlighted_link_href();
+
+int draw_get_highlighted_link_index();
+void draw_set_highlighted_link_index(WINDOW *win, int new_index);

@@ -3,8 +3,9 @@
 // TODO: Add window buffer cache to prevent rerendering of pages when switching between VIEW_MAIN and VIEW_HELP
 // TODO: Add window where we will echo and take input
 static WINDOW *content_win;
-static int previous_page_index = -1;
 static int current_page_index = -1;
+static int previous_page_index = -1;
+static int previous_page_link_index = -1;
 static int current_page_id = TTT_PAGE_HOME;
 static page_t *current_page = NULL;
 static page_collection_t *collection;
@@ -15,13 +16,24 @@ static void set_page_index(int index) {
     }
 
     previous_page_index = current_page_index;
+    previous_page_link_index = draw_get_highlighted_link_index();
     current_page_index = index;
     current_page = collection->pages[index];
+    current_page_id = current_page->id;
     draw(content_win, VIEW_MAIN, current_page);
 }
 
 static void set_page(uint16_t id) {
     error_reset();
+
+    // Check if the page has been cached
+    for (int i = 0; i < collection->size; i++) {
+        if (collection->pages[i]->id == id) {
+            // TODO: Refetch page if it has an update (and some time has passed, e.g. 5 min)
+            set_page_index(i);
+            return;
+        }
+    }
 
     page_t *page = api_get_page(id);
 
@@ -57,13 +69,22 @@ static void next_page() {
 }
 
 static void undo_follow_highlighted_link() {
-    if (previous_page_index != -1) {
-        set_page_index(previous_page_index);
+    if (previous_page_index == -1) {
+        return;
+    }
+
+    // Save the previous link index so that we can set it after rendering the page
+    int link_index = previous_page_link_index;
+
+    set_page_index(previous_page_index);
+
+    if (link_index != -1) {
+        draw_set_highlighted_link_index(content_win, link_index);
     }
 }
 
 static void follow_highlighted_link() {
-    uint16_t href = draw_get_highlighted_link_page_id();
+    uint16_t href = draw_get_highlighted_link_href();
 
     if (href >= TTT_PAGE_HOME) {
         set_page(href);
