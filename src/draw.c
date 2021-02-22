@@ -210,6 +210,10 @@ void draw_set_highlighted_link_index(WINDOW *win, int new_index) {
 }
 
 void draw_next_link(WINDOW *win) {
+    if (current_view != VIEW_MAIN) {
+        return;
+    }
+
     if (current_link != -1 && current_link < current_link_count) {
         dehighlight_link(win);
     }
@@ -224,6 +228,10 @@ void draw_next_link(WINDOW *win) {
 }
 
 void draw_previous_link(WINDOW *win) {
+    if (current_view != VIEW_MAIN) {
+        return;
+    }
+
     if (current_link != -1) {
         dehighlight_link(win);
     }
@@ -271,11 +279,10 @@ void draw_help(WINDOW *win) {
     print_keybinding(win, &line, "select next link on page", "j");
     print_keybinding(win, &line, "select previous link on page", "k");
     print_keybinding(win, &line, "next page", "l/n");
-    print_keybinding(win, &line, "show index page", "i");
-    print_keybinding(win, &line, "go to selected link", "enter");
     print_keybinding(win, &line, "go back to previous page", "u/b");
-    print_bold_title(win, &line, "Command mode");
-    print_keybinding(win, &line, "enter command mode", ":");
+    print_keybinding(win, &line, "go to selected link", "enter");
+    print_keybinding(win, &line, "go to start page", "s");
+    print_keybinding(win, &line, "go to index page", "i");
     print_keybinding(win, &line, "go to page", ":<page-number>");
     print_bold_title(win, &line, "General");
     print_keybinding(win, &line, "display (this) help page", "?");
@@ -339,4 +346,8 @@ void draw(WINDOW *win, view_t view, page_t *page) {
     wattroff(win, COLOR_PAIR(COLORSCHEME_DEFAULT));
     refresh();
     wrefresh(win);
+}
+
+int draw_get_current_view() {
+    return current_view;
 }

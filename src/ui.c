@@ -51,7 +51,7 @@ static void set_page(uint16_t id) {
 }
 
 static void previous_page() {
-    if (current_page_id == TTT_PAGE_HOME) {
+    if (draw_get_current_view() != VIEW_MAIN || current_page_id == TTT_PAGE_HOME) {
         return;
     }
 
@@ -60,7 +60,7 @@ static void previous_page() {
 }
 
 static void next_page() {
-    if (current_page_id == TTT_PAGE_CONTENTS) {
+    if (draw_get_current_view() != VIEW_MAIN || current_page_id == TTT_PAGE_CONTENTS) {
         return;
     }
 
@@ -69,7 +69,7 @@ static void next_page() {
 }
 
 static void undo_follow_highlighted_link() {
-    if (previous_page_index == -1) {
+    if (draw_get_current_view() != VIEW_MAIN || previous_page_index == -1) {
         return;
     }
 
@@ -84,6 +84,10 @@ static void undo_follow_highlighted_link() {
 }
 
 static void follow_highlighted_link() {
+    if (draw_get_current_view() != VIEW_MAIN) {
+        return;
+    }
+
     uint16_t href = draw_get_highlighted_link_href();
 
     if (href >= TTT_PAGE_HOME) {
@@ -181,6 +185,14 @@ void ui_event_loop() {
         case 'u':
         case 'b':
             undo_follow_highlighted_link();
+            break;
+
+        case 'i':
+            set_page(TTT_PAGE_CONTENTS);
+            break;
+
+        case 's':
+            set_page(TTT_PAGE_HOME);
             break;
 
         case 'q':

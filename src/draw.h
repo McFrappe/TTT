@@ -25,5 +25,6 @@ void draw(WINDOW *win, view_t current, page_t *page);
 /// @return page id or 0 if no link is selected
 uint16_t draw_get_highlighted_link_href();
 
+int draw_get_current_view();
 int draw_get_highlighted_link_index();
 void draw_set_highlighted_link_index(WINDOW *win, int new_index);
