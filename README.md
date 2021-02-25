@@ -21,16 +21,16 @@ Not yet available.
 
 ### Building from source
 ```
-git clone https://github.com/McFrappe/TTT.git
-cd TTT
-sudo make install
+$ git clone https://github.com/McFrappe/TTT.git
+$ cd TTT
+$ sudo make install
 ```
 
 The default installation path prefix is `/usr/local`, i.e. the program is
 installed to `/usr/local/bin`. This can be changed by specifying another prefix:
 
 ```
-sudo PREFIX="<your/prefix>" make install
+$ sudo PREFIX="<your/prefix>" make install
 ```
 
 ## Usage
@@ -48,11 +48,11 @@ opened and closed using `?`.
 
 ## Development usage
 ```
-make run        # run the program
-make memrun     # run the program with valgrind
+$ make run        # run the program
+$ make memrun     # run the program with valgrind
 
-make test       # run tests
-make memtest    # run tests with valgrind
+$ make test       # run tests
+$ make memtest    # run tests with valgrind
 
-make clean      # removes all compiled files
+$ make clean      # removes all compiled files
 ```
