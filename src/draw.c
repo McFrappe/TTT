@@ -296,6 +296,33 @@ void draw_empty_page(WINDOW *win) {
     mvwprintw(win, 0, 0, "Empty page!");
 }
 
+void draw_command_start(WINDOW *win) {
+    wclear(win);
+    mvwaddch(win, 0, 1, ':');
+    wrefresh(win);
+}
+
+void draw_command_key(WINDOW *win, char key, int index) {
+    // Add 2 to the index to account for the left side padding (space + :)
+    mvwaddch(win, 0, index + 2, key);
+    wrefresh(win);
+}
+
+void draw_command_key_remove(WINDOW *win, int index) {
+    mvwdelch(win, 0, index + 2);
+    wrefresh(win);
+}
+
+void draw_command_message(WINDOW *win, char *str) {
+    wclear(win);
+
+    if (str) {
+        mvwaddstr(win, 0, 1, str);
+    }
+
+    wrefresh(win);
+}
+
 void draw_main(WINDOW *win, page_t *page) {
     if (error_is_set()) {
         draw_error(error_get_string());

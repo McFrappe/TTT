@@ -28,3 +28,8 @@ uint16_t draw_get_highlighted_link_href();
 int draw_get_current_view();
 int draw_get_highlighted_link_index();
 void draw_set_highlighted_link_index(WINDOW *win, int new_index);
+
+void draw_command_start(WINDOW *win);
+void draw_command_key(WINDOW *win, char key, int index);
+void draw_command_key_remove(WINDOW *win, int index);
+void draw_command_message(WINDOW *win, char *str);
