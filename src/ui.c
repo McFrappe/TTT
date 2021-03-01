@@ -1,5 +1,9 @@
 #include "ui.h"
+#include <stdlib.h>
+#include <string.h>
 
+#define LOWERCASE_QUIT      "q"
+#define QUIT                "Q"
 #define ESCAPE              27
 #define DELETE              127
 #define BACKSPACE           8
@@ -119,9 +123,14 @@ static void remove_command_mode_key(char buf[256], int *buf_length) {
     draw_command_key_remove(command_win, *buf_length);
 }
 
-static void execute_command_mode_input(char buf[256], int length) {
+static void execute_command_mode_input(char buf[256], int length, int *break_loop) {
     // Clear input window
     draw_command_message(command_win, NULL);
+
+    if (strncmp(buf, LOWERCASE_QUIT, length) == 0 || strncmp(buf, QUIT, length) == 0) {
+        *break_loop = 1;
+        return;
+    }
 
     if (length == 0 || length > PAGE_ID_MAX_LENGTH) {
         return;
@@ -205,6 +214,7 @@ void ui_initialize(bool overwrite_colors, bool transparent_background) {
 void ui_event_loop() {
     int key;
     int buf_length = 0;
+    int break_loop = 0;
     char buf[256];
     bool command_mode = false;
 
@@ -225,7 +235,8 @@ void ui_event_loop() {
 
             case '\n':
                 reset_command_mode_input(buf, &buf_length, &command_mode);
-                execute_command_mode_input(buf, buf_length - 1);
+                execute_command_mode_input(buf, buf_length - 1, &break_loop);
+                if (break_loop) return;
                 break;
 
             // Colon is not a valid command character

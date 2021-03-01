@@ -286,7 +286,7 @@ void draw_help(WINDOW *win) {
     print_keybinding(win, &line, "go to page", ":<page-number>");
     print_bold_title(win, &line, "General");
     print_keybinding(win, &line, "display (this) help page", "?");
-    print_keybinding(win, &line, "quit", "q");
+    print_keybinding(win, &line, "quit", "q, :q, :Q");
     line = PAGE_LINES - 2;
     print_center(win, &line, "Page 1/1", PAGE_SIDE_PADDING_LG, COLOR_PAIR(COLORSCHEME_BLY));
     print_center_fill(win, &line, "? to close", COLOR_PAIR(COLORSCHEME_YBL));
