@@ -106,7 +106,6 @@ static void replace_unicode_escape_sequence(const char *html_content, int *start
 
 static void replace_html_escape_sequence(const char *html_content, int *start_index, char **dest, int *dest_position) {
     const char *sequence_start = html_content + (*start_index);
-
     int i = 0;
     char buf[MAX_HTML_ESCAPE_SEQUENCE_LENGTH];
 

@@ -286,7 +286,7 @@ void draw_help(WINDOW *win) {
     print_keybinding(win, &line, "go to page", ":<page-number>");
     print_bold_title(win, &line, "General");
     print_keybinding(win, &line, "display (this) help page", "?");
-    print_keybinding(win, &line, "quit", "q");
+    print_keybinding(win, &line, "quit", "q, :q, :Q");
     line = PAGE_LINES - 2;
     print_center(win, &line, "Page 1/1", PAGE_SIDE_PADDING_LG, COLOR_PAIR(COLORSCHEME_BLY));
     print_center_fill(win, &line, "? to close", COLOR_PAIR(COLORSCHEME_YBL));
@@ -294,6 +294,33 @@ void draw_help(WINDOW *win) {
 
 void draw_empty_page(WINDOW *win) {
     mvwprintw(win, 0, 0, "Empty page!");
+}
+
+void draw_command_start(WINDOW *win) {
+    wclear(win);
+    mvwaddch(win, 0, 1, ':');
+    wrefresh(win);
+}
+
+void draw_command_key(WINDOW *win, char key, int index) {
+    // Add 2 to the index to account for the left side padding (space + :)
+    mvwaddch(win, 0, index + 2, key);
+    wrefresh(win);
+}
+
+void draw_command_key_remove(WINDOW *win, int index) {
+    mvwdelch(win, 0, index + 2);
+    wrefresh(win);
+}
+
+void draw_command_message(WINDOW *win, char *str) {
+    wclear(win);
+
+    if (str) {
+        mvwaddstr(win, 0, 1, str);
+    }
+
+    wrefresh(win);
 }
 
 void draw_main(WINDOW *win, page_t *page) {

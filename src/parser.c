@@ -171,7 +171,6 @@ page_t *parser_get_page(const char *data, size_t size) {
     }
 
     jsmntok_t *cursor = tokens;
-
     next_token(&cursor);
 
     // We only parse single pages, even if there are more than
