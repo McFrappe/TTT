@@ -81,7 +81,6 @@ static void undo_follow_highlighted_link() {
 
     // Save the previous link index so that we can set it after rendering the page
     int link_index = previous_page_link_index;
-
     set_page_index(previous_page_index);
 
     if (link_index != -1) {
@@ -107,7 +106,6 @@ static void reset_command_mode_input(char buf[256], int *buf_length, bool *comma
     buf[*buf_length] = '\0';
     *buf_length = 0;
     *command_mode = false;
-
     draw_command_message(command_win, NULL);
 }
 
@@ -246,6 +244,7 @@ void ui_event_loop() {
                 draw_command_start(command_win);
                 command_mode = true;
                 break;
+
             case 'h':
             case 'p':
                 previous_page();
