@@ -236,7 +236,11 @@ void ui_event_loop() {
             case '\n':
                 reset_command_mode_input(buf, &buf_length, &command_mode);
                 execute_command_mode_input(buf, buf_length - 1, &break_loop);
-                if (break_loop) return;
+
+                if (break_loop) {
+                    return;
+                }
+
                 break;
 
             // Colon is not a valid command character
