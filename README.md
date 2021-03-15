@@ -2,6 +2,7 @@
 ![Formatted .c and .h files](https://github.com/McFrappe/TTT/workflows/Format/badge.svg)
 
 # TTT
+![TTT Normal View](images/ttt-normal.png)
 TTT, Terminal Text TV, is a terminal version of the Swedish teletext system
 ("Text-TV") written in C, relying on the [Text TV API](https://texttv.nu/blogg/texttv-api).
 
@@ -46,6 +47,10 @@ opened and closed using `?`.
 * `-d` - do not overwrite terminal colors (uses your terminal colors instead)
 * `-t` - use transparent background for pages (instead of black)
 
+#### Display
+
+![TTT -d](images/ttt-d.png)![TTT -d -t](images/ttt-d-t.png)
+
 ## Development usage
 ```
 $ make run        # run the program
@@ -56,3 +61,5 @@ $ make memtest    # run tests with valgrind
 
 $ make clean      # removes all compiled files
 ```
+
+
